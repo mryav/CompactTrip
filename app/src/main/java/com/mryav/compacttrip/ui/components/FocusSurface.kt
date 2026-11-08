@@ -44,14 +44,16 @@ import com.mryav.compacttrip.ui.theme.du
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+const val FOCUS_SHADOW_FADE_MS = 400
+
 /**
  * The one focusable building block for the whole app (Figma "Focused states examples", node 22:993).
  *
  * Focused: background becomes [Palette.FocusFill] with the "Focus state" inner shadow
  * (#00000040, y 6, blur 4), which fades in over [FOCUS_SHADOW_FADE_MS] each time an item gains focus,
- * and [content] is told `focused = true` so it switches its text and
- * icons to [Palette.FocusedContent]. Nested chips (line badges, countdown boxes) keep their colours.
- * The fill follows [shape]. Pressed (touch or OK): a light dark overlay.
+ * and [content] is told `focused = true` so it switches its text and icons to [Palette.FocusedContent].
+ * Nested chips (line badges, countdown boxes) keep their colours. The fill follows [shape].
+ * Pressed (touch or OK): a light dark overlay. When [enabled] is false it is neither clickable nor focusable.
  */
 @Composable
 fun FocusSurface(
@@ -59,29 +61,21 @@ fun FocusSurface(
     modifier: Modifier = Modifier,
     color: Color = Color.Transparent,
     shape: Shape = RectangleShape,
+    enabled: Boolean = true,
     onClickLabel: String? = null,
     contentAlignment: Alignment = Alignment.TopStart,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
-    // Fill switches instantly; the shadow fades in. Read only in the draw phase (no recomposition per frame).
-    val shadowAlpha = animateFloatAsState(
-        targetValue = if (focused) 1f else 0f,
-        animationSpec = if (focused) tween(FOCUS_SHADOW_FADE_MS) else snap(),
-        label = "focusShadow",
-    )
-    val shadowOffset = 6.du
-    val shadowBlur = 4.du
 
     Box(
         modifier = modifier
-            .clip(shape)
-            .background(if (focused) Palette.FocusFill else color)
-            .focusInnerShadow(shape, shadowOffset, shadowBlur) { shadowAlpha.value }
+            .focusHighlight(focused = focused, color = color, shape = shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = PressOverlayIndication,
+                enabled = enabled,
                 onClickLabel = onClickLabel,
                 role = Role.Button,
                 onClick = onClick,
@@ -92,7 +86,25 @@ fun FocusSurface(
     }
 }
 
-const val FOCUS_SHADOW_FADE_MS = 400
+/**
+ * Background + focus highlight for anything focusable, including text fields that can't use
+ * [FocusSurface]: [color] normally, focus fill + fading inner shadow when [focused].
+ */
+@Composable
+fun Modifier.focusHighlight(focused: Boolean, color: Color, shape: Shape = RectangleShape): Modifier {
+    // Fill switches instantly; the shadow fades in. Read only in the draw phase (no recomposition per frame).
+    val shadowAlpha = animateFloatAsState(
+        targetValue = if (focused) 1f else 0f,
+        animationSpec = if (focused) tween(FOCUS_SHADOW_FADE_MS) else snap(),
+        label = "focusShadow",
+    )
+    val shadowOffset = 6.du
+    val shadowBlur = 4.du
+    return this
+        .clip(shape)
+        .background(if (focused) Palette.FocusFill else color)
+        .focusInnerShadow(shape, shadowOffset, shadowBlur) { shadowAlpha.value }
+}
 
 /**
  * Figma inner shadow: #00000040, offset (0, [offset]), blur [blur], spread 0, following [shape].
@@ -140,7 +152,7 @@ private fun Modifier.focusInnerShadow(
     }
 }
 
-/** Touch / OK press feedback only; focus is shown by [FocusSurface] itself. No ripple (cheap on low-end GPUs). */
+/** Touch / OK press feedback only; focus is shown by [focusHighlight]. No ripple (cheap on low-end GPUs). */
 private object PressOverlayIndication : IndicationNodeFactory {
     override fun create(interactionSource: InteractionSource): DelegatableNode = Node(interactionSource)
     override fun equals(other: Any?): Boolean = other === this

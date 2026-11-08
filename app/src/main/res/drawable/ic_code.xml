@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Converted from Figma asset (code). Tinted at the call site. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13.2867 30.0225L3.17792 19.9238L13.3217 9.78L15.5 11.9483L7.5 19.9483L15.4304 27.8787L13.2867 30.0225ZM26.6783 30.1092L24.5067 27.9404L32.5067 19.9404L24.5763 12.01L26.7271 9.8525L36.8362 19.9513L26.6783 30.1092Z" />
+</vector>

@@ -12,11 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.ui.theme.Palette
-import com.mryav.compacttrip.ui.theme.RobotoCondensed
-import com.mryav.compacttrip.ui.theme.dsp
+import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
 
 /** High / veryHigh priority service alert banner (red). Figma: "veryHigh or High priority banner". */
@@ -40,7 +38,7 @@ fun AlertBanner(
             BasicText(
                 text = text,
                 modifier = Modifier.weight(1f),
-                style = TextStyle(color = content, fontFamily = RobotoCondensed, fontSize = 28.dsp),
+                style = Type.condensed(content),
             )
             Image(
                 painter = painterResource(R.drawable.ic_arrow_forward_ios),

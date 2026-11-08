@@ -17,6 +17,9 @@ android {
 
     buildTypes {
         release {
+            // TODO: replace with a real release keystore before distributing. Until then, local
+            // release builds use the debug key so they install over debug builds (keeping the API key).
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))

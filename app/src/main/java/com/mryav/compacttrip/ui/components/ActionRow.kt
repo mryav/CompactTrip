@@ -3,6 +3,7 @@ package com.mryav.compacttrip.ui.components
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,27 +12,32 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import com.mryav.compacttrip.ui.theme.Palette
-import com.mryav.compacttrip.ui.theme.Roboto
-import com.mryav.compacttrip.ui.theme.dsp
+import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
 
-/** Full-width dark grey action row with a trailing icon (e.g. "Add trip to home page  +"). */
+/**
+ * Full-width action row with a trailing icon, e.g. "Add trip to home page  +".
+ * Default is the dark grey row; [color] = [Palette.LinkRow] gives the blue "Open user guide ↗" row.
+ * Optional [subtitle] (Settings: "Your API key is functional…").
+ */
 @Composable
 fun ActionRow(
     label: String,
     @DrawableRes icon: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    color: Color = Palette.ActionRow,
 ) {
     FocusSurface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        color = Palette.ActionRow,
+        color = color,
     ) {
         // Content is white both normally and focused.
         Row(
@@ -39,13 +45,20 @@ fun ActionRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.du),
         ) {
-            BasicText(
-                text = label,
+            Column(
                 modifier = Modifier.weight(1f),
-                style = TextStyle(color = Palette.OnDark, fontFamily = Roboto, fontSize = 28.dsp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+                verticalArrangement = Arrangement.spacedBy(4.du),
+            ) {
+                BasicText(
+                    text = label,
+                    style = Type.row(Palette.OnDark),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (subtitle != null) {
+                    BasicText(text = subtitle, style = Type.condensedSmall(Palette.OnDarkSubtle))
+                }
+            }
             Image(
                 painter = painterResource(icon),
                 contentDescription = null,
