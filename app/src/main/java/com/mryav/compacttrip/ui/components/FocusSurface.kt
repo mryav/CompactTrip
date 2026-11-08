@@ -1,0 +1,176 @@
+package com.mryav.compacttrip.ui.components
+
+import android.graphics.BlurMaskFilter
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.IndicationNodeFactory
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.node.DelegatableNode
+import androidx.compose.ui.node.DrawModifierNode
+import androidx.compose.ui.node.invalidateDraw
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
+import com.mryav.compacttrip.ui.theme.Palette
+import com.mryav.compacttrip.ui.theme.du
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+
+/**
+ * The one focusable building block for the whole app (Figma "Focused states examples", node 22:993).
+ *
+ * Focused: background becomes [Palette.FocusFill] with the "Focus state" inner shadow
+ * (#00000040, y 6, blur 4), which fades in over [FOCUS_SHADOW_FADE_MS] each time an item gains focus,
+ * and [content] is told `focused = true` so it switches its text and
+ * icons to [Palette.FocusedContent]. Nested chips (line badges, countdown boxes) keep their colours.
+ * The fill follows [shape]. Pressed (touch or OK): a light dark overlay.
+ */
+@Composable
+fun FocusSurface(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Transparent,
+    shape: Shape = RectangleShape,
+    onClickLabel: String? = null,
+    contentAlignment: Alignment = Alignment.TopStart,
+    content: @Composable BoxScope.(focused: Boolean) -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
+    // Fill switches instantly; the shadow fades in. Read only in the draw phase (no recomposition per frame).
+    val shadowAlpha = animateFloatAsState(
+        targetValue = if (focused) 1f else 0f,
+        animationSpec = if (focused) tween(FOCUS_SHADOW_FADE_MS) else snap(),
+        label = "focusShadow",
+    )
+    val shadowOffset = 6.du
+    val shadowBlur = 4.du
+
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(if (focused) Palette.FocusFill else color)
+            .focusInnerShadow(shape, shadowOffset, shadowBlur) { shadowAlpha.value }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = PressOverlayIndication,
+                onClickLabel = onClickLabel,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        contentAlignment = contentAlignment,
+    ) {
+        content(focused)
+    }
+}
+
+const val FOCUS_SHADOW_FADE_MS = 400
+
+/**
+ * Figma inner shadow: #00000040, offset (0, [offset]), blur [blur], spread 0, following [shape].
+ * Built the way Figma renders it: the area outside the shape, shifted down by [offset], blurred,
+ * then clipped to the shape. This gives the dark top band plus the faint side shading and correct
+ * rounded corners. Drawn over the fill, under the content. [alpha] (0..1) is read at draw time.
+ */
+private fun Modifier.focusInnerShadow(
+    shape: Shape,
+    offset: Dp,
+    blur: Dp,
+    alpha: () -> Float,
+): Modifier = drawWithCache {
+    val outline = shape.createOutline(size, layoutDirection, this)
+    val clip = Path().apply { addOutline(outline) }
+    val dy = offset.toPx()
+    val blurPx = blur.toPx()
+    val margin = blurPx * 4 + dy
+    val hole = Path().apply {
+        addOutline(outline)
+        translate(Offset(0f, dy))
+    }
+    val frame = Path().apply {
+        addRect(Rect(-margin, -margin, size.width + margin, size.height + margin))
+    }
+    val shadow = Path().apply { op(frame, hole, PathOperation.Difference) }
+    // Figma blur is a CSS-style radius (sigma = blur / 2). Android: sigma = 0.57735 * radius + 0.5.
+    val sigma = blurPx / 2f
+    val androidRadius = ((sigma - 0.5f) / 0.57735f).coerceAtLeast(0.5f)
+    val baseColor = Palette.FocusShadow.toArgb()
+    val baseAlpha = android.graphics.Color.alpha(baseColor)
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = baseColor
+        maskFilter = BlurMaskFilter(androidRadius, BlurMaskFilter.Blur.NORMAL)
+    }
+    val androidShadow = shadow.asAndroidPath()
+
+    onDrawBehind {
+        val a = alpha()
+        if (a <= 0f) return@onDrawBehind
+        paint.alpha = (baseAlpha * a).roundToInt()
+        clipPath(clip) {
+            drawIntoCanvas { it.nativeCanvas.drawPath(androidShadow, paint) }
+        }
+    }
+}
+
+/** Touch / OK press feedback only; focus is shown by [FocusSurface] itself. No ripple (cheap on low-end GPUs). */
+private object PressOverlayIndication : IndicationNodeFactory {
+    override fun create(interactionSource: InteractionSource): DelegatableNode = Node(interactionSource)
+    override fun equals(other: Any?): Boolean = other === this
+    override fun hashCode(): Int = System.identityHashCode(this)
+
+    private class Node(private val interactionSource: InteractionSource) : Modifier.Node(), DrawModifierNode {
+        private var pressed = false
+
+        override fun onAttach() {
+            coroutineScope.launch {
+                val presses = mutableSetOf<PressInteraction.Press>()
+                interactionSource.interactions.collect { interaction ->
+                    when (interaction) {
+                        is PressInteraction.Press -> presses += interaction
+                        is PressInteraction.Release -> presses -= interaction.press
+                        is PressInteraction.Cancel -> presses -= interaction.press
+                    }
+                    if (pressed != presses.isNotEmpty()) {
+                        pressed = presses.isNotEmpty()
+                        invalidateDraw()
+                    }
+                }
+            }
+        }
+
+        override fun ContentDrawScope.draw() {
+            drawContent()
+            if (pressed) drawRect(PressOverlay)
+        }
+    }
+
+    private val PressOverlay = Color.Black.copy(alpha = 0.12f)
+}

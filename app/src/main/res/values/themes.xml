@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="page">#FFEDEDED</color>
+    <color name="app_bar">#FF2A2A2A</color>
+
+    <style name="Theme.CompactTrips" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/page</item>
+        <item name="android:statusBarColor">@color/app_bar</item>
+        <item name="android:navigationBarColor">@color/app_bar</item>
+    </style>
+</resources>
