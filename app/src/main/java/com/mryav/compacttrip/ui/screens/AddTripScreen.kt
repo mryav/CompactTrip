@@ -27,6 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.data.ApiResult
+import com.mryav.compacttrip.data.RetryStatus
+import com.mryav.compacttrip.data.loadWithRetry
+import com.mryav.compacttrip.data.retryingIn
 import com.mryav.compacttrip.data.model.Stop
 import com.mryav.compacttrip.data.model.TripSummary
 import com.mryav.compacttrip.ui.components.ActionRow
@@ -47,13 +50,6 @@ import com.mryav.compacttrip.ui.components.revealDurationMs
 import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
-import kotlinx.coroutines.delay
-
-/** First automatic retry after "Couldn't load preview"; doubles each time up to [MAX_RETRY_S]. Kept long to avoid API throttling. */
-private const val FIRST_RETRY_S = 10
-private const val MAX_RETRY_S = 60
-/** After coming back online, at least this long since the last attempt before trying again. */
-private const val OFFLINE_RETRY_GAP_MS = 10_000L
 
 /** What the preview block shows (Figma 25:2749). */
 @Immutable
@@ -99,39 +95,27 @@ fun AddTripScreen(
 
     LaunchedEffect(origin?.id, destination?.id) {
         if (!ready) return@LaunchedEffect
-        var failures = 0
-        while (true) {
-            val attemptAt = System.currentTimeMillis()
-            when (val r = loadPreview(origin, destination)) {
-                is ApiResult.Ok -> {
-                    val summary = r.value
-                    preview = when {
-                        summary.departures.isNotEmpty() -> Preview.Loaded(summary)
-                        summary.walkMinutes != null -> Preview.Walking(summary.walkMinutes)
-                        else -> Preview.NoTrips
-                    }
-                    return@LaunchedEffect
+        val r = loadWithRetry(
+            load = { loadPreview(origin, destination) },
+            awaitOnline = awaitOnline,
+            onStatus = { status ->
+                preview = when (status) {
+                    RetryStatus.Offline -> Preview.Offline
+                    is RetryStatus.Waiting -> Preview.Failed(status.seconds)
+                    RetryStatus.Retrying -> Preview.Retrying
                 }
-                ApiResult.Unauthorized, ApiResult.NoKey -> {
-                    preview = Preview.KeyProblem
-                    return@LaunchedEffect
-                }
-                ApiResult.Offline -> {
-                    preview = Preview.Offline
-                    awaitOnline()
-                    val wait = OFFLINE_RETRY_GAP_MS - (System.currentTimeMillis() - attemptAt)
-                    if (wait > 0) delay(wait)
-                }
-                ApiResult.ServiceUnavailable -> {
-                    failures++
-                    val seconds = (FIRST_RETRY_S shl (failures - 1).coerceAtMost(3)).coerceAtMost(MAX_RETRY_S)
-                    for (s in seconds downTo 1) {
-                        preview = Preview.Failed(s)
-                        delay(1_000)
-                    }
+            },
+        )
+        preview = when (r) {
+            is ApiResult.Ok -> {
+                val summary = r.value
+                when {
+                    summary.departures.isNotEmpty() -> Preview.Loaded(summary)
+                    summary.walkMinutes != null -> Preview.Walking(summary.walkMinutes)
+                    else -> Preview.NoTrips
                 }
             }
-            preview = Preview.Retrying
+            else -> Preview.KeyProblem
         }
     }
 
@@ -202,7 +186,7 @@ private fun PreviewBlock(preview: Preview, now: State<Long>) {
         Preview.Retrying -> StatusSpinner()
         is Preview.Failed -> StatusMessage(
             title = "Couldn’t load preview",
-            detail = preview.retryInSeconds.let { if (it == 1) "Retrying in 1 second…" else "Retrying in $it seconds…" },
+            detail = retryingIn(preview.retryInSeconds),
             icon = R.drawable.ic_cloud_alert,
             background = Palette.AlertHighBackground,
             foreground = Palette.AlertForeground,

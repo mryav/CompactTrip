@@ -36,6 +36,8 @@ import com.mryav.compacttrip.ui.screens.HomeAction
 import com.mryav.compacttrip.ui.screens.HomeScreen
 import com.mryav.compacttrip.ui.screens.SelectStopScreen
 import com.mryav.compacttrip.ui.screens.NoticesScreen
+import com.mryav.compacttrip.ui.screens.PlanTripScreen
+import com.mryav.compacttrip.ui.screens.PlanTripSession
 import com.mryav.compacttrip.ui.screens.ServiceAlertScreen
 import com.mryav.compacttrip.ui.screens.SettingsScreen
 import com.mryav.compacttrip.ui.screens.TripDetailsScreen
@@ -45,9 +47,15 @@ import com.mryav.compacttrip.ui.screens.WelcomeScreen
 import kotlinx.coroutines.delay
 
 enum class Route {
-    Welcome, ApiKeySetup, ApiKeyEdit, Home, Settings, AddTrip, SelectOrigin, SelectDestination,
+    Welcome, ApiKeySetup, ApiKeyEdit, Home, Settings, AddTrip, PlanTrip, SelectOrigin, SelectDestination,
     ViewServices, TripDetails, Notices, ServiceAlert,
 }
+
+/** Which screen the stop search is filling in. */
+private enum class PickFor { AddTrip, PlanTrip }
+
+/** Stand-in id for a planned (unsaved) trip shown in Trip Details. */
+private const val PLANNED_TRIP_ID = "planned"
 
 /** Routes that can be rebuilt after process death; the others depend on in-memory selections. */
 private val RESTORABLE = setOf(Route.Welcome, Route.ApiKeySetup, Route.ApiKeyEdit, Route.Home, Route.Settings)
@@ -111,6 +119,11 @@ fun CompactTripsApp(
     // Add-trip picks survive trips to the stop search and back.
     var draftOrigin by remember { mutableStateOf<Stop?>(null) }
     var draftDestination by remember { mutableStateOf<Stop?>(null) }
+    // Plan new trip: stops and results survive the stop search and Trip Details.
+    val plan = remember { PlanTripSession() }
+    var pickFor by remember { mutableStateOf(PickFor.AddTrip) }
+    // Trip Details for a planned trip (not saved, so not in `trips`).
+    var plannedTrip by remember { mutableStateOf<SavedTrip?>(null) }
     // Detail selections (in memory only; see RESTORABLE).
     var selectedTripId by remember { mutableStateOf<String?>(null) }
     var selectedJourney by remember { mutableStateOf<Journey?>(null) }
@@ -135,15 +148,26 @@ fun CompactTripsApp(
     }
 
     fun openTrip(trip: SavedTrip) {
+        plannedTrip = null
         selectedTripId = trip.id
         push(Route.ViewServices)
     }
     fun openNotices(trip: SavedTrip) {
+        plannedTrip = null
         selectedTripId = trip.id
         push(Route.Notices)
     }
     fun openJourney(trip: SavedTrip, journey: Journey) {
+        plannedTrip = null
         selectedTripId = trip.id
+        selectedJourney = journey
+        push(Route.TripDetails)
+    }
+    fun openPlannedJourney(journey: Journey) {
+        val o = plan.origin ?: return
+        val d = plan.destination ?: return
+        plannedTrip = SavedTrip(PLANNED_TRIP_ID, o, d)
+        selectedTripId = null
         selectedJourney = journey
         push(Route.TripDetails)
     }
@@ -151,8 +175,9 @@ fun CompactTripsApp(
         selectedNotice = notice
         push(Route.ServiceAlert)
     }
-    val liveTrip = trips.firstOrNull { it.id == selectedTripId }
+    val liveTrip = plannedTrip ?: trips.firstOrNull { it.id == selectedTripId }
     val selectedLoad = selectedTripId?.let { board.loads[it] }
+    val selectedNotices = if (plannedTrip != null) plan.summary?.notices.orEmpty() else selectedLoad?.summary?.notices.orEmpty()
 
     // key(): each screen gets fresh state when it's (re)entered.
     // Screen transitions: full-width push. Each screen is keyed by route + stack depth so returning to
@@ -220,7 +245,10 @@ fun CompactTripsApp(
                                     push(Route.AddTrip)
                                 }
                                 HomeAction.Refresh -> container.board.refresh()
-                                HomeAction.PlanTrip -> showMessage("Plan new trip is coming in a later update")
+                                HomeAction.PlanTrip -> {
+                                    plan.reset()
+                                    push(Route.PlanTrip)
+                                }
                             }
                         },
                         onOpenTrip = ::openTrip,
@@ -245,8 +273,14 @@ fun CompactTripsApp(
                         awaitOnline = { container.http.awaitOnline() },
                         now = now,
                         onBack = { pop() },
-                        onPickOrigin = { push(Route.SelectOrigin) },
-                        onPickDestination = { push(Route.SelectDestination) },
+                        onPickOrigin = {
+                            pickFor = PickFor.AddTrip
+                            push(Route.SelectOrigin)
+                        },
+                        onPickDestination = {
+                            pickFor = PickFor.AddTrip
+                            push(Route.SelectDestination)
+                        },
                         onModes = { showMessage("Choosing modes is coming in the next update. Showing all modes.") },
                         onDone = {
                             val o = draftOrigin
@@ -259,19 +293,51 @@ fun CompactTripsApp(
                         },
                     )
                 }
+                Route.PlanTrip -> key(route) {
+                    PlanTripScreen(
+                        session = plan,
+                        load = { o, d -> container.trips.upcoming(o, d) },
+                        awaitOnline = { container.http.awaitOnline() },
+                        now = now,
+                        onBack = { pop() },
+                        onPickOrigin = {
+                            pickFor = PickFor.PlanTrip
+                            push(Route.SelectOrigin)
+                        },
+                        onPickDestination = {
+                            pickFor = PickFor.PlanTrip
+                            push(Route.SelectDestination)
+                        },
+                        onModes = { showMessage("Choosing modes is coming in the next update. Showing all modes.") },
+                        onOpenJourney = ::openPlannedJourney,
+                    )
+                }
                 Route.SelectOrigin, Route.SelectDestination -> key(route) {
                     val isOrigin = route == Route.SelectOrigin
+                    val forPlan = pickFor == PickFor.PlanTrip
+                    val otherEnd = when {
+                        forPlan && isOrigin -> plan.destination
+                        forPlan -> plan.origin
+                        isOrigin -> draftDestination
+                        else -> draftOrigin
+                    }
                     SelectStopScreen(
                         title = if (isOrigin) "Select Origin" else "Select Destination",
                         recentStops = remember { container.savedTrips.recentStops() },
                         search = { q -> container.stops.search(q) },
+                        awaitOnline = { container.http.awaitOnline() },
                         onPick = { stop ->
                             container.savedTrips.rememberStop(stop)
-                            if (isOrigin) draftOrigin = stop else draftDestination = stop
+                            when {
+                                forPlan && isOrigin -> plan.origin = stop
+                                forPlan -> plan.destination = stop
+                                isOrigin -> draftOrigin = stop
+                                else -> draftDestination = stop
+                            }
                             pop()
                         },
                         onBack = { pop() },
-                        excludeStopId = if (isOrigin) draftDestination?.id else draftOrigin?.id,
+                        excludeStopId = otherEnd?.id,
                     )
                 }
                 Route.ViewServices -> key(route) {
@@ -307,7 +373,7 @@ fun CompactTripsApp(
                         TripDetailsScreen(
                             trip = trip,
                             journey = journey,
-                            notices = selectedLoad?.summary?.notices.orEmpty(),
+                            notices = selectedNotices,
                             now = now,
                             onBack = { pop() },
                             onOpenNotice = ::openNotice,

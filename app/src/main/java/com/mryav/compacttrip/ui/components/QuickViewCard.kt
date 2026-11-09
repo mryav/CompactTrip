@@ -90,7 +90,7 @@ fun QuickViewCard(
                     style = Type.condensed24(text),
                     maxLines = if (compact) 1 else 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 250.du),
+                    modifier = Modifier.widthIn(max = HEADSIGN_MAX_WIDTH.du),
                 )
                 val platformLine = listOfNotNull(card.platform, card.boardCars).joinToString(" • ")
                 if (platformLine.isNotEmpty()) {
@@ -124,6 +124,9 @@ private fun CountdownBox(card: DepartureCard, now: State<Long>, cancelled: Boole
 }
 
 const val CARD_HEIGHT = 175
+
+/** Headsigns wrap (to two lines at most) past this width. */
+const val HEADSIGN_MAX_WIDTH = 250
 
 /** "12 min" / "1 hr" / "Now", number coloured by realtime status. Reads [now] (15 s ticker). */
 @Composable

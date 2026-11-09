@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -54,6 +56,7 @@ import com.mryav.compacttrip.ui.theme.LineColors
 import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
+import kotlinx.coroutines.launch
 
 /** Walks longer than this get a chip in the summary (Figma 11:2255 annotation). */
 private const val WALK_CHIP_MIN = 5
@@ -84,24 +87,36 @@ fun TripDetailsScreen(
             title = "Trip Details",
             navigation = { BackButton(onClick = onBack, modifier = Modifier.focusRequester(initialFocus)) },
         )
+        val scroll = rememberScrollState()
+        val scope = rememberCoroutineScope()
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scroll)
                 .navigationBarsPadding()
                 .padding(vertical = 16.du),
             verticalArrangement = Arrangement.spacedBy(2.du),
         ) {
-            Column(
+            // Not clickable, but focusable so UP from the first leg scrolls back to the top (shadow-only
+            // focus). Scrolls right to the start, so the margin above it shows again too.
+            FocusSurface(
+                onClick = null,
+                fillOnFocus = false,
+                color = Palette.Card,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Palette.Card)
-                    .padding(horizontal = 16.du, vertical = 20.du),
-                verticalArrangement = Arrangement.spacedBy(4.du),
+                    .onFocusChanged { if (it.isFocused) scope.launch { scroll.animateScrollTo(0) } },
             ) {
-                BasicText(trip.origin.name, style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                BasicText("To ${trip.destination.name}", style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.du, vertical = 20.du),
+                    verticalArrangement = Arrangement.spacedBy(4.du),
+                ) {
+                    BasicText(trip.origin.name, style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    BasicText("To ${trip.destination.name}", style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
             JourneySummary(journey = journey, now = now)
             BasicText(
@@ -214,7 +229,8 @@ private fun LegFrame(
     modifier: Modifier = Modifier,
     content: @Composable (focused: Boolean) -> Unit,
 ) {
-    FocusSurface(onClick = {}, fillOnFocus = false, modifier = modifier.fillMaxWidth()) { focused ->
+    // Not clickable: focusable only so the D-pad can scroll through the legs.
+    FocusSurface(onClick = null, fillOnFocus = false, modifier = modifier.fillMaxWidth()) { focused ->
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             Box(Modifier.width(12.du).fillMaxHeight().background(borderColor))
             Box(Modifier.weight(1f)) { content(focused) }

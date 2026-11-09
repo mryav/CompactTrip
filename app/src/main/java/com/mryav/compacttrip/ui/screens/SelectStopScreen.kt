@@ -2,7 +2,6 @@ package com.mryav.compacttrip.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -29,14 +27,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.data.ApiResult
+import com.mryav.compacttrip.data.RetryStatus
+import com.mryav.compacttrip.data.loadWithRetry
+import com.mryav.compacttrip.data.retryingIn
 import com.mryav.compacttrip.data.model.Mode
 import com.mryav.compacttrip.data.model.Stop
 import com.mryav.compacttrip.ui.components.AppBar
 import com.mryav.compacttrip.ui.components.BackButton
+import com.mryav.compacttrip.ui.components.CollapsingSwap
 import com.mryav.compacttrip.ui.components.DesignTextField
-import com.mryav.compacttrip.ui.components.LoadingSpinner
 import com.mryav.compacttrip.ui.components.Motion
 import com.mryav.compacttrip.ui.components.ModeIcon
+import com.mryav.compacttrip.ui.components.StatusMessage
+import com.mryav.compacttrip.ui.components.StatusSpinner
 import com.mryav.compacttrip.ui.components.StopRow
 import com.mryav.compacttrip.ui.components.focusEntry
 import com.mryav.compacttrip.ui.components.rememberInitialFocus
@@ -47,6 +50,16 @@ import kotlinx.coroutines.delay
 
 private const val SEARCH_DEBOUNCE_MS = 300L
 private const val MIN_QUERY = 2
+
+/** Status block above the results (Figma 25:2884). */
+private sealed interface SearchStatus {
+    /** Slow search (after [Motion.SPINNER_DELAY_MS]) or retrying: the supplemental spinner block. */
+    data object Spinner : SearchStatus
+    data class Failed(val retryInSeconds: Int) : SearchStatus
+    data object Offline : SearchStatus
+    data object NoStops : SearchStatus
+    data object KeyProblem : SearchStatus
+}
 
 /** Modes searched; shown under the field. All modes until Select modes exists. */
 private val ALL_MODES = listOf(Mode.Metro, Mode.LightRail, Mode.Bus, Mode.Train, Mode.Ferry)
@@ -61,6 +74,7 @@ fun SelectStopScreen(
     title: String,
     recentStops: List<Stop>,
     search: suspend (String) -> ApiResult<List<Stop>>,
+    awaitOnline: suspend () -> Unit,
     onPick: (Stop) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -69,7 +83,7 @@ fun SelectStopScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var results by remember { mutableStateOf<List<Stop>?>(null) }
-    var message by remember { mutableStateOf<String?>(null) }
+    var status by remember { mutableStateOf<SearchStatus?>(null) }
     var searching by remember { mutableStateOf(false) }
     var showSpinner by remember { mutableStateOf(false) }
 
@@ -86,24 +100,34 @@ fun SelectStopScreen(
         val q = query.trim()
         if (q.length < MIN_QUERY) {
             results = null
-            message = null
+            status = null
             return@LaunchedEffect
         }
         delay(SEARCH_DEBOUNCE_MS)
         searching = true
+        // Previous results stay until this search answers; errors clear them (they'd be for another query).
         val r = try {
-            search(q)
+            loadWithRetry(
+                load = { search(q) },
+                awaitOnline = awaitOnline,
+                onStatus = { s ->
+                    if (s !is RetryStatus.Retrying) results = null
+                    status = when (s) {
+                        RetryStatus.Offline -> SearchStatus.Offline
+                        is RetryStatus.Waiting -> SearchStatus.Failed(s.seconds)
+                        RetryStatus.Retrying -> SearchStatus.Spinner
+                    }
+                },
+            )
         } finally {
             searching = false
         }
-        when (r) {
-            is ApiResult.Ok -> {
-                results = r.value
-                message = if (r.value.none { it.id != excludeStopId }) "No stops found" else null
-            }
-            ApiResult.Offline -> message = "Offline. Connect to the internet to search."
-            ApiResult.Unauthorized, ApiResult.NoKey -> message = "Check your API key in Settings"
-            ApiResult.ServiceUnavailable -> message = "Transport NSW isn't responding"
+        if (r is ApiResult.Ok) {
+            results = r.value
+            status = if (r.value.none { it.id != excludeStopId }) SearchStatus.NoStops else null
+        } else {
+            results = null
+            status = SearchStatus.KeyProblem
         }
     }
 
@@ -132,16 +156,10 @@ fun SelectStopScreen(
             verticalArrangement = Arrangement.spacedBy(2.du),
         ) {
             // Outside the list: a list item inserted above the visible rows would be scrolled out of view.
-            if (showSpinner) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 20.du),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    LoadingSpinner(color = Palette.BodyText)
-                }
-            }
+            CollapsingSwap(
+                target = status ?: if (showSpinner && searchingFor) SearchStatus.Spinner else null,
+                kind = { it::class },
+            ) { shown -> SearchStatusBlock(shown) }
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(2.du),
@@ -156,15 +174,6 @@ fun SelectStopScreen(
                     }
                 }
                 items(shown, key = { it.id }) { stop -> StopRow(stop = stop, onClick = { onPick(stop) }) }
-                message?.let { text ->
-                    item(key = "message") {
-                        BasicText(
-                            text,
-                            style = Type.condensed(Palette.MutedText),
-                            modifier = Modifier.padding(horizontal = 16.du, vertical = 20.du),
-                        )
-                    }
-                }
             }
             DesignTextField(
                 value = query,
@@ -187,5 +196,40 @@ fun SelectStopScreen(
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun SearchStatusBlock(status: SearchStatus) {
+    when (status) {
+        SearchStatus.Spinner -> StatusSpinner()
+        is SearchStatus.Failed -> StatusMessage(
+            title = "Connection error",
+            detail = retryingIn(status.retryInSeconds),
+            icon = R.drawable.ic_cloud_alert,
+            background = Palette.AlertHighBackground,
+            foreground = Palette.AlertForeground,
+        )
+        SearchStatus.KeyProblem -> StatusMessage(
+            title = "Couldn’t search",
+            detail = "Check your API key in Settings",
+            icon = R.drawable.ic_cloud_alert,
+            background = Palette.AlertHighBackground,
+            foreground = Palette.AlertForeground,
+        )
+        SearchStatus.Offline -> StatusMessage(
+            title = "Offline",
+            detail = "Connect to the internet to search",
+            icon = R.drawable.ic_cloud_off,
+            background = Palette.NeutralStatusBackground,
+            foreground = Palette.NeutralStatusForeground,
+        )
+        SearchStatus.NoStops -> StatusMessage(
+            title = "No stops found",
+            detail = "Couldn’t find anything",
+            icon = R.drawable.ic_wrong_location,
+            background = Palette.NeutralStatusBackground,
+            foreground = Palette.NeutralStatusForeground,
+        )
     }
 }

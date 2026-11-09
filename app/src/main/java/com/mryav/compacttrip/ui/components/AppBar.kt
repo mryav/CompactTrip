@@ -79,6 +79,7 @@ fun AppBarIcon(
 ) {
     FocusSurface(
         onClick = onClick,
+        rippleColor = Palette.OnDark,
         modifier = modifier.size(40.du),
         shape = RoundedCornerShape(5.du),
         contentAlignment = Alignment.Center,
@@ -116,6 +117,7 @@ fun DoneAction(
     FocusSurface(
         onClick = onClick,
         enabled = enabled,
+        rippleColor = Palette.OnDark,
         modifier = modifier.alpha(if (enabled) 1f else 0.4f),
         shape = RoundedCornerShape(5.du),
     ) { focused ->

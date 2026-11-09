@@ -7,10 +7,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material.ripple.createRippleModifierNode
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -24,25 +25,23 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.asAndroidPath
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.node.DelegatableNode
-import androidx.compose.ui.node.DrawModifierNode
-import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.du
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 const val FOCUS_SHADOW_FADE_MS = 400
@@ -54,7 +53,9 @@ const val FOCUS_SHADOW_FADE_MS = 400
  * (#00000040, y 6, blur 4), which fades in over [FOCUS_SHADOW_FADE_MS] each time an item gains focus,
  * and [content] is told `focused = true` so it switches its text and icons to [Palette.FocusedContent].
  * Nested chips (line badges, countdown boxes) keep their colours. The fill follows [shape].
- * Pressed (touch or OK): a light dark overlay. When [enabled] is false it is neither clickable nor focusable.
+ * Pressed (touch or OK): the Android ripple, dark on light surfaces and light on dark ones ([color]),
+ * or [rippleColor] when the surface is transparent over something dark (e.g. the app bar).
+ * When [enabled] is false it is neither clickable nor focusable.
  * With [onClick] = null it's focusable but not clickable (e.g. preview cards, focused only to scroll).
  */
 @Composable
@@ -67,6 +68,7 @@ fun FocusSurface(
     /** false: focus shows only the inner shadow (over the content), no orange fill. For large cards. */
     fillOnFocus: Boolean = true,
     onClickLabel: String? = null,
+    rippleColor: Color = Color.Unspecified,
     contentAlignment: Alignment = Alignment.TopStart,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
@@ -80,7 +82,11 @@ fun FocusSurface(
                 if (onClick != null) {
                     Modifier.clickable(
                         interactionSource = interactionSource,
-                        indication = PressOverlayIndication,
+                        indication = when {
+                            rippleColor.isSpecified -> if (rippleColor.luminance() > 0.5f) LightRipple else DarkRipple
+                            color.alpha > 0f && color.luminance() < 0.5f -> LightRipple
+                            else -> DarkRipple
+                        },
                         enabled = enabled,
                         onClickLabel = onClickLabel,
                         role = Role.Button,
@@ -170,36 +176,27 @@ private fun Modifier.focusInnerShadow(
 }
 
 /** Touch / OK press feedback only; focus is shown by [focusHighlight]. No ripple (cheap on low-end GPUs). */
-private object PressOverlayIndication : IndicationNodeFactory {
-    override fun create(interactionSource: InteractionSource): DelegatableNode = Node(interactionSource)
-    override fun equals(other: Any?): Boolean = other === this
-    override fun hashCode(): Int = System.identityHashCode(this)
+/**
+ * Touch feedback: the standard Android ripple, spreading from the touch point (or the centre for a
+ * keypad OK press). Only the press is drawn; focus has its own orange/shadow highlight, so the
+ * ripple's focus and hover layers are off.
+ */
+private data class RippleIndication(private val color: Color) : IndicationNodeFactory {
+    override fun create(interactionSource: InteractionSource): DelegatableNode =
+        createRippleModifierNode(
+            interactionSource = interactionSource,
+            bounded = true,
+            radius = Dp.Unspecified,
+            color = { color },
+            rippleAlpha = { if (color.luminance() > 0.5f) LightRippleAlpha else DarkRippleAlpha },
+        )
 
-    private class Node(private val interactionSource: InteractionSource) : Modifier.Node(), DrawModifierNode {
-        private var pressed = false
-
-        override fun onAttach() {
-            coroutineScope.launch {
-                val presses = mutableSetOf<PressInteraction.Press>()
-                interactionSource.interactions.collect { interaction ->
-                    when (interaction) {
-                        is PressInteraction.Press -> presses += interaction
-                        is PressInteraction.Release -> presses -= interaction.press
-                        is PressInteraction.Cancel -> presses -= interaction.press
-                    }
-                    if (pressed != presses.isNotEmpty()) {
-                        pressed = presses.isNotEmpty()
-                        invalidateDraw()
-                    }
-                }
-            }
-        }
-
-        override fun ContentDrawScope.draw() {
-            drawContent()
-            if (pressed) drawRect(PressOverlay)
-        }
+    private companion object {
+        // Material values: a light ripple on dark surfaces needs more opacity to read.
+        val DarkRippleAlpha = RippleAlpha(draggedAlpha = 0.16f, focusedAlpha = 0f, hoveredAlpha = 0f, pressedAlpha = 0.12f)
+        val LightRippleAlpha = RippleAlpha(draggedAlpha = 0.24f, focusedAlpha = 0f, hoveredAlpha = 0f, pressedAlpha = 0.24f)
     }
-
-    private val PressOverlay = Color.Black.copy(alpha = 0.12f)
 }
+
+private val DarkRipple = RippleIndication(Color.Black)
+private val LightRipple = RippleIndication(Color.White)

@@ -23,13 +23,14 @@ import kotlin.math.roundToInt
 /**
  * A container that changes state the way the API key status banner does (Figma 22:1562): it starts
  * collapsed and expands downwards; when the [kind] of [target] changes it collapses, swaps the
- * content, then expands again. The content is anchored to the top and cropped by the container, so
- * it's revealed top-to-bottom. Updates within the same kind (e.g. a countdown ticking, or loading →
+ * content, then expands again. A null [target] just collapses (and the next one expands without a
+ * collapse first). The content is anchored to the top and cropped by the container, so it's
+ * revealed top-to-bottom. Updates within the same kind (e.g. a countdown ticking, or loading →
  * loaded with its own animation) go straight through. Height is animated in layout only.
  */
 @Composable
-fun <T> CollapsingSwap(
-    target: T,
+fun <T : Any> CollapsingSwap(
+    target: T?,
     kind: (T) -> Any?,
     modifier: Modifier = Modifier,
     content: @Composable (T) -> Unit,
@@ -37,14 +38,15 @@ fun <T> CollapsingSwap(
     val latest by rememberUpdatedState(target)
     var shown by remember { mutableStateOf(target) }
     val reveal = remember { Animatable(0f) }
-    val targetKind = kind(target)
+    val targetKind = target?.let(kind)
 
-    LaunchedEffect(targetKind) {
-        if (reveal.value > 0f && kind(shown) != targetKind) {
+    LaunchedEffect(target == null, targetKind) {
+        val current = shown
+        if (reveal.value > 0f && current != null && (target == null || kind(current) != targetKind)) {
             reveal.animateTo(0f, tween(Motion.COLLAPSE_MS, easing = Motion.Collapse))
         }
         shown = latest
-        reveal.animateTo(1f, tween(Motion.EXPAND_MS, easing = Motion.Expand))
+        if (latest != null) reveal.animateTo(1f, tween(Motion.EXPAND_MS, easing = Motion.Expand))
     }
 
     Box(
@@ -57,6 +59,8 @@ fun <T> CollapsingSwap(
             }
             .semantics { liveRegion = LiveRegionMode.Polite },
     ) {
-        content(if (kind(shown) == targetKind) target else shown)
+        val current = shown
+        val display = if (target != null && current != null && kind(current) == targetKind) target else current
+        if (display != null) content(display)
     }
 }
