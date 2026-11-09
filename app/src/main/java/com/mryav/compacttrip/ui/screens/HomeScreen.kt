@@ -22,8 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.data.BoardState
 import com.mryav.compacttrip.data.model.DepartureCard
+import com.mryav.compacttrip.data.model.Notice
 import com.mryav.compacttrip.data.model.SavedTrip
 import com.mryav.compacttrip.ui.components.ActionRow
+import com.mryav.compacttrip.ui.components.AlertBanner
+import com.mryav.compacttrip.ui.components.CollapsingSwap
 import com.mryav.compacttrip.ui.components.AppBar
 import com.mryav.compacttrip.ui.components.AppBarIcon
 import com.mryav.compacttrip.ui.components.TripSection
@@ -34,6 +37,9 @@ import com.mryav.compacttrip.ui.components.rememberInitialFocus
 import com.mryav.compacttrip.ui.theme.CompactTripsTheme
 import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.du
+
+/** At most this many network alert banners on Home (space is precious on a 640 px screen). */
+private const val MAX_BANNERS = 2
 
 /** Things the user can trigger on Home. */
 enum class HomeAction(val label: String) {
@@ -51,6 +57,8 @@ enum class HomeAction(val label: String) {
 fun HomeScreen(
     trips: List<SavedTrip>,
     board: BoardState,
+    alerts: List<Notice>,
+    onOpenAlert: (Notice) -> Unit,
     now: State<Long>,
     onAction: (HomeAction) -> Unit,
     onOpenTrip: (SavedTrip) -> Unit,
@@ -110,6 +118,18 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.du)) {
+                        // Network alerts for everyone (Figma 11:1580): top of the page, before the trips.
+                        // Expands in when they arrive and collapses away when they end.
+                        CollapsingSwap(target = alerts.take(MAX_BANNERS).takeIf { it.isNotEmpty() }, kind = { Unit }) { shown ->
+                            Column(
+                                modifier = Modifier.padding(bottom = if (trips.isEmpty()) 0.du else 6.du),
+                                verticalArrangement = Arrangement.spacedBy(2.du),
+                            ) {
+                                shown.forEach { alert ->
+                                    AlertBanner(text = alert.title, urgent = alert.urgent, maxLines = 3, onClick = { onOpenAlert(alert) })
+                                }
+                            }
+                        }
                         trips.forEach { trip ->
                             androidx.compose.runtime.key(trip.id) {
                                 TripSection(
@@ -153,6 +173,8 @@ private fun HomeScreenPreview() {
         HomeScreen(
             trips = emptyList(),
             board = BoardState(),
+            alerts = emptyList(),
+            onOpenAlert = {},
             now = now,
             onAction = {},
             onOpenTrip = {},

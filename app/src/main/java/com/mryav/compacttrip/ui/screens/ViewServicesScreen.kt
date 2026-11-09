@@ -44,6 +44,7 @@ import com.mryav.compacttrip.data.TripLoad
 import com.mryav.compacttrip.data.model.Journey
 import com.mryav.compacttrip.data.model.SavedTrip
 import com.mryav.compacttrip.ui.components.ActionRow
+import com.mryav.compacttrip.ui.components.Flyout
 import com.mryav.compacttrip.ui.components.AppBar
 import com.mryav.compacttrip.ui.components.AppBarIcon
 import com.mryav.compacttrip.ui.components.BackButton
@@ -159,7 +160,8 @@ fun ViewServicesScreen(
             }
         }
 
-        if (menuOpen) {
+        // Always composed so it can slide out.
+        Flyout(visible = menuOpen, onDismiss = { menuOpen = false }) {
             TripMenu(
                 trip = trip,
                 cancel = menuFocus,
@@ -198,39 +200,21 @@ private fun TripMenu(
         }
     }
     BackHandler(onBack = onDismiss)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            // A tap outside closes it. Not `clickable`: that would make the backdrop focusable.
-            .pointerInput(Unit) { detectTapGestures { onDismiss() } },
-        contentAlignment = Alignment.BottomCenter,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .pointerInput(Unit) { detectTapGestures { } } // taps on the sheet itself don't close it
-                .background(Palette.Page)
-                .navigationBarsPadding()
-                .focusProperties { onExit = { cancelFocusChange() } }
-                .focusGroup(),
-            verticalArrangement = Arrangement.spacedBy(2.du),
-        ) {
-            BasicText(
-                trip.title,
-                style = Type.condensed24(Palette.BodyText),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),
-            )
-            ActionRow(
-                label = "Trip preferences",
-                subtitle = trip.preferences.summary(java.time.LocalDate.now()),
-                icon = R.drawable.ic_arrow_forward,
-                onClick = onPreferences,
-            )
-            ActionRow(label = "Remove trip from home", icon = null, onClick = onRemove)
-            ActionRow(label = "Cancel", icon = null, onClick = onDismiss, modifier = Modifier.focusRequester(cancel))
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(2.du)) {
+        BasicText(
+            trip.title,
+            style = Type.condensed24(Palette.BodyText),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),
+        )
+        ActionRow(
+            label = "Trip preferences",
+            subtitle = trip.preferences.summary(java.time.LocalDate.now()),
+            icon = R.drawable.ic_arrow_forward,
+            onClick = onPreferences,
+        )
+        ActionRow(label = "Remove trip from home", icon = null, onClick = onRemove)
+        ActionRow(label = "Cancel", icon = null, onClick = onDismiss, modifier = Modifier.focusRequester(cancel))
     }
 }

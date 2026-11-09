@@ -73,6 +73,13 @@ class SavedTripsStore(context: Context) {
             .commit()
     }
 
+    /** Network alerts the user hid from Home ("id@lastModified", so an updated alert shows again). */
+    fun hiddenAlerts(): Set<String> = prefs.getStringSet(KEY_HIDDEN_ALERTS, null).orEmpty().toSet()
+
+    fun saveHiddenAlerts(keys: Set<String>) {
+        prefs.edit().putStringSet(KEY_HIDDEN_ALERTS, HashSet(keys)).commit()
+    }
+
     private fun readTrips(): List<SavedTrip> = decode(prefs.getString(KEY_TRIPS, null), tripsSerializer)
 
     private fun writeTrips(trips: List<SavedTrip>) {
@@ -92,5 +99,6 @@ class SavedTripsStore(context: Context) {
         const val KEY_ACCESSIBLE = "plan_accessible_only"
         const val KEY_MODES = "plan_modes"
         const val KEY_ROUTE_FOR = "plan_route_for"
+        const val KEY_HIDDEN_ALERTS = "hidden_alerts"
     }
 }

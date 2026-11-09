@@ -138,6 +138,7 @@ fun CompactTripsApp(
 
     val trips by container.savedTrips.trips.collectAsStateWithLifecycle()
     val board by container.board.state.collectAsStateWithLifecycle()
+    val networkAlerts by container.alerts.alerts.collectAsStateWithLifecycle()
     val route = stack.last()
 
     // Live refresh while a departures screen is visible (paused in the background).
@@ -147,9 +148,11 @@ fun CompactTripsApp(
         if (!live) return@LaunchedEffect
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             container.board.refresh(ifOlderThanMs = REUSE_MS)
+            container.alerts.refresh() // network alerts: at most every 10 min
             while (true) {
                 delay(REFRESH_MS)
                 container.board.refresh()
+                container.alerts.refresh()
             }
         }
     }
@@ -178,7 +181,15 @@ fun CompactTripsApp(
         selectedJourney = journey
         push(Route.TripDetails)
     }
+    // Opened from a Home network banner: the alert screen offers "Hide alert".
+    var noticeIsBanner by remember { mutableStateOf(false) }
     fun openNotice(notice: Notice) {
+        noticeIsBanner = false
+        selectedNotice = notice
+        push(Route.ServiceAlert)
+    }
+    fun openBanner(notice: Notice) {
+        noticeIsBanner = true
         selectedNotice = notice
         push(Route.ServiceAlert)
     }
@@ -242,6 +253,8 @@ fun CompactTripsApp(
                     HomeScreen(
                         trips = trips,
                         board = board,
+                        alerts = networkAlerts,
+                        onOpenAlert = ::openBanner,
                         now = now,
                         onAction = { action ->
                             when (action) {
@@ -444,7 +457,19 @@ fun CompactTripsApp(
                     if (notice == null) {
                         if (screen == current) LaunchedEffect(Unit) { resetTo(Route.Home) }
                     } else {
-                        ServiceAlertScreen(notice = notice, onBack = { pop() }, onOpenUrl = openUrl)
+                        ServiceAlertScreen(
+                            notice = notice,
+                            onBack = { pop() },
+                            onOpenUrl = openUrl,
+                            onHide = if (noticeIsBanner) {
+                                {
+                                    container.alerts.hide(notice)
+                                    pop()
+                                }
+                            } else {
+                                null
+                            },
+                        )
                     }
                 }
             }

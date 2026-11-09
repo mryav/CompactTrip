@@ -6,6 +6,7 @@ import com.mryav.compacttrip.data.ApiKeyStore
 import com.mryav.compacttrip.data.SavedTripsStore
 import com.mryav.compacttrip.data.StopRepository
 import com.mryav.compacttrip.data.TfnswHttp
+import com.mryav.compacttrip.data.NetworkAlerts
 import com.mryav.compacttrip.data.TripBoard
 import com.mryav.compacttrip.data.TripRepository
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,7 @@ class AppContainer(app: Application) {
     val trips = TripRepository(http)
     val savedTrips = SavedTripsStore(app)
     val board = TripBoard(trips, savedTrips, appScope)
+    val alerts = NetworkAlerts(http, savedTrips, appScope)
 }
 
 class CompactTripsApplication : Application() {

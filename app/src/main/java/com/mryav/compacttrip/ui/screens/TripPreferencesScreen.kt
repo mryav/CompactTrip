@@ -58,6 +58,7 @@ import com.mryav.compacttrip.data.model.TripPreferences
 import com.mryav.compacttrip.ui.components.AppBar
 import com.mryav.compacttrip.ui.components.BackButton
 import com.mryav.compacttrip.ui.components.DoneAction
+import com.mryav.compacttrip.ui.components.Flyout
 import com.mryav.compacttrip.ui.components.FocusSurface
 import com.mryav.compacttrip.ui.components.ModeIcon
 import com.mryav.compacttrip.ui.components.rememberInitialFocus
@@ -102,12 +103,19 @@ fun TripPreferencesScreen(
     // The time boxes sit inside their timing row, so D-pad DOWN from the row would skip past them:
     // wire row → Day box and box → row explicitly.
     val timingRowFocus = remember { mapOf(Timing.LeaveAt to FocusRequester(), Timing.ArriveBy to FocusRequester()) }
+    // Set while handing focus back to a time box, so the screen's "enter on Back" rule lets it through.
+    val handingBack = remember { BooleanArray(1) }
     LaunchedEffect(picking) {
         val from = reopenedFrom
         if (picking != null || from == null) return@LaunchedEffect
-        repeat(10) {
-            withFrameNanos { }
-            if (runCatching { boxFocus.getValue(from).requestFocus(FocusDirection.Enter) }.getOrDefault(false)) return@LaunchedEffect
+        handingBack[0] = true
+        try {
+            repeat(10) {
+                withFrameNanos { }
+                if (runCatching { boxFocus.getValue(from).requestFocus(FocusDirection.Enter) }.getOrDefault(false)) return@LaunchedEffect
+            }
+        } finally {
+            handingBack[0] = false
         }
     }
 
@@ -122,7 +130,15 @@ fun TripPreferencesScreen(
                 .background(Palette.Page)
                 // While a pick list is open, focus belongs in it. After a tap, Android leaves touch mode
                 // on the first key press and focus re-enters from the top: send it to the list, not Back.
-                .focusProperties { onEnter = { (if (picking != null) pickFocus else initialFocus).requestFocus() } }
+                .focusProperties {
+                    onEnter = {
+                        when {
+                            picking != null -> pickFocus.requestFocus()
+                            handingBack[0] -> Unit // going back to the time box that opened the list
+                            else -> initialFocus.requestFocus()
+                        }
+                    }
+                }
                 .focusGroup()
                 // And if focus is somehow still back here, the next key moves it into the list.
                 .onPreviewKeyEvent { event ->
@@ -225,21 +241,30 @@ fun TripPreferencesScreen(
             }
         }
 
+        // Always composed so it can slide out; while closing it keeps showing the list it was opened for.
         val at = draft.at
-        val part = picking
-        if (part != null && at != null) {
-            val choices = timeChoices(part, at, today)
-            PickList(
-                focus = pickFocus,
-                title = part.name,
-                options = choices.map { it.label },
-                selected = choices.indexOfFirst { it.selected }.coerceAtLeast(0),
-                onPick = { i ->
-                    draft = draft.copy(at = choices[i].value)
-                    picking = null
-                },
-                onDismiss = { picking = null },
-            )
+        val part = picking ?: reopenedFrom
+        Flyout(
+            visible = picking != null && at != null,
+            onDismiss = { picking = null },
+            modifier = Modifier.heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.7f).dp),
+        ) {
+            if (part != null && at != null) {
+                val choices = timeChoices(part, at, today)
+                PickList(
+                    focus = pickFocus,
+                    title = part.name,
+                    options = choices.map { it.label },
+                    selected = choices.indexOfFirst { it.selected }.coerceAtLeast(0),
+                    onPick = { i ->
+                        if (picking != null) {
+                            draft = draft.copy(at = choices[i].value)
+                            picking = null
+                        }
+                    },
+                    onDismiss = { picking = null },
+                )
+            }
         }
     }
 }
@@ -333,8 +358,8 @@ private fun TimeBox(label: String, value: String, modifier: Modifier, onClick: (
 }
 
 /**
- * Pick list over the screen (the ⋮ menu's style): radio rows, focus starts on the current value,
- * OK picks, Back cancels. Focus stays inside while it's open.
+ * Pick list content (inside a [Flyout]): radio rows, focus starts on the current value, OK picks,
+ * Back cancels.
  */
 @Composable
 private fun PickList(
@@ -345,7 +370,6 @@ private fun PickList(
     onPick: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val current = focus
     val focusManager = LocalFocusManager.current
     val list = rememberLazyListState(initialFirstVisibleItemIndex = (selected - 1).coerceAtLeast(0))
     // The rows are laid out lazily, so wait for a frame (or a few) before focusing the current one.
@@ -355,45 +379,24 @@ private fun PickList(
         focusManager.clearFocus(force = true)
         repeat(10) {
             withFrameNanos { }
-            if (runCatching { current.requestFocus(FocusDirection.Enter) }.getOrDefault(false)) return@LaunchedEffect
+            if (runCatching { focus.requestFocus(FocusDirection.Enter) }.getOrDefault(false)) return@LaunchedEffect
         }
     }
     BackHandler(onBack = onDismiss)
-    val maxHeight = (LocalConfiguration.current.screenHeightDp * 0.7f).dp
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            // A tap outside closes it. Not `clickable`: that would make the backdrop focusable.
-            .pointerInput(Unit) { detectTapGestures { onDismiss() } },
-        contentAlignment = Alignment.BottomCenter,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight)
-                .pointerInput(Unit) { detectTapGestures { } } // taps on the sheet itself don't close it
-                .background(Palette.Page)
-                .navigationBarsPadding()
-                .focusProperties { onExit = { cancelFocusChange() } }
-                .focusGroup(),
-        ) {
-            BasicText(
-                title,
-                style = Type.condensed24(Palette.BodyText),
-                modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),
+    BasicText(
+        title,
+        style = Type.condensed24(Palette.BodyText),
+        modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),
+    )
+    LazyColumn(state = list, verticalArrangement = Arrangement.spacedBy(2.du)) {
+        itemsIndexed(options) { i, option ->
+            OptionRow(
+                selected = i == selected,
+                icon = radioIcon(i == selected),
+                title = option,
+                onClick = { onPick(i) },
+                modifier = if (i == selected) Modifier.focusRequester(focus) else Modifier,
             )
-            LazyColumn(state = list, verticalArrangement = Arrangement.spacedBy(2.du)) {
-                itemsIndexed(options) { i, option ->
-                    OptionRow(
-                        selected = i == selected,
-                        icon = radioIcon(i == selected),
-                        title = option,
-                        onClick = { onPick(i) },
-                        modifier = if (i == selected) Modifier.focusRequester(current) else Modifier,
-                    )
-                }
-            }
         }
     }
 }

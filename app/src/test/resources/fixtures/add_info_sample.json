@@ -1,0 +1,365 @@
+{
+ "version": "10.6.21.17",
+ "timestamp": "2026-11-08T12:37:24Z",
+ "infos": {
+  "current": [
+   {
+    "type": "areaInfo",
+    "id": "ems-81146",
+    "version": 246168,
+    "priority": "high",
+    "timestamps": {
+     "creation": "2026-11-03T03:45:00Z",
+     "lastModification": "2026-11-06T00:08:00Z",
+     "availability": {
+      "from": "2026-11-03T03:42:00Z",
+      "isOpenEnd": true,
+      "to": "2500-12-31T00:00:00Z"
+     },
+     "validity": [
+      {
+       "from": "2026-11-03T03:42:00Z",
+       "isOpenEnd": true,
+       "to": "2500-12-31T00:00:00Z"
+      }
+     ],
+     "expiration": "2500-12-31T00:00:59Z"
+    },
+    "properties": {
+     "source": {
+      "id": "efa-addinfo",
+      "name": "efa",
+      "type": "EFA"
+     },
+     "announcementType": "general",
+     "publishToAreas": "1",
+     "producerRef": "MENTZ-EMS",
+     "deviceRef": "65c871c0fd234d87a5d8903b53da3927",
+     "messageRef": "27d93544-92f8-5578-abd7-fe35814b4eff",
+     "MiscellaneousReason": "securityAlert",
+     "publisher": "ems.comm.addinfo",
+     "stopIDglobalID": "0",
+     "providerCode": "TfNSW",
+     "smsText": "BUS INDUSTRIAL ACTION may affect some services in Sydney\u2019s Eastern Suburbs, Northern Beaches, Lower North Shore and Inner North-West."
+    },
+    "affected": {
+     "lines": []
+    },
+    "urlText": "BUS INDUSTRIAL ACTION may affect some services in Sydney\u2019s Eastern Suburbs, Northern Beaches, Lower North Shore and Inner North-West.",
+    "url": "https://transportnsw.info/alerts/details#/ems-81146",
+    "content": "<div>From Wednesday 4th November, some services may be affected by industrial action which involves drivers not operating certain vehicles.\u202f&nbsp;<br />Buses may be delayed or cancelled and there may be longer wait times and crowding at major interchanges.\u202f&nbsp;<br />Plan ahead, allow extra travel ",
+    "subtitle": "BUS INDUSTRIAL ACTION may affect some services in Sydney\u2019s Eastern Suburbs, Northern Beaches, Lower North Shore and Inner North-West."
+   },
+   {
+    "type": "lineInfo",
+    "id": "ems-81266",
+    "version": 494,
+    "priority": "normal",
+    "timestamps": {
+     "creation": "2026-11-04T02:47:00Z",
+     "lastModification": "2026-11-04T02:56:00Z",
+     "availability": {
+      "from": "2026-11-04T02:36:00Z",
+      "isOpenEnd": true,
+      "to": "2500-12-31T00:00:00Z"
+     },
+     "validity": [
+      {
+       "from": "2026-11-04T02:36:00Z",
+       "isOpenEnd": true,
+       "to": "2500-12-31T00:00:00Z"
+      }
+     ],
+     "expiration": "2500-12-31T00:00:59Z"
+    },
+    "properties": {
+     "source": {
+      "id": "efa-addinfo",
+      "name": "efa",
+      "type": "EFA"
+     },
+     "announcementType": "serviceChange",
+     "publishToAreas": "1",
+     "producerRef": "MENTZ-EMS",
+     "deviceRef": "65c871c0fd234d87a5d8903b53da3927",
+     "messageRef": "754eb317-66b2-5191-a86c-fe68e5cbe408",
+     "AlertCause": "unknown",
+     "publisher": "ems.comm.addinfo",
+     "providerCode": "TfNSW",
+     "smsText": "Bus service changes from 22 November",
+     "speechText": "From Sunday 22 November, bus service changes including timetable and route changes and new routes will better connect communities with employment hubs, transport and essential services. They will also provide more frequent, reliable and sustainable transport options.\nRead the news article at transportnsw.info for route-specific information and to learn more about the changes.\nYou can plan ahead using the Trip Planner from Sunday 8 November. Check signage at stops and allow extra time for your journeys during the service changes."
+    },
+    "affected": {
+     "lines": [
+      {
+       "id": "nsw:11S11: :R:",
+       "name": "Sydney Buses Network S11"
+      },
+      {
+       "id": "nsw:11721: :R:",
+       "name": "Sydney Buses Network 721"
+      },
+      {
+       "id": "nsw:11722: :R:",
+       "name": "Sydney Buses Network 722"
+      },
+      {
+       "id": "nsw:11723: :R:",
+       "name": "Sydney Buses Network 723"
+      },
+      {
+       "id": "nsw:11723: :H:",
+       "name": "Sydney Buses Network 723"
+      },
+      {
+       "id": "nsw:11724: :R:",
+       "name": "Sydney Buses Network 724"
+      }
+     ]
+    },
+    "urlText": "Bus service changes from 22 November",
+    "url": "https://transportnsw.info/alerts/details#/ems-81266",
+    "content": "<div><strong>From Sunday 22 November</strong>, bus service changes including timetable and route changes and new routes will better connect communities with employment hubs, transport and essential services. They will also provide more frequent, reliable and sustainable transport options.</div>\n<ul>",
+    "subtitle": "Bus service changes from 22 November"
+   },
+   {
+    "type": "lineInfo",
+    "id": "test-veryhigh-6-lines",
+    "version": 494,
+    "priority": "veryHigh",
+    "timestamps": {
+     "creation": "2026-11-04T02:47:00Z",
+     "lastModification": "2026-11-04T02:56:00Z",
+     "availability": {
+      "from": "2026-11-04T02:36:00Z",
+      "isOpenEnd": true,
+      "to": "2500-12-31T00:00:00Z"
+     },
+     "validity": [
+      {
+       "from": "2026-11-04T02:36:00Z",
+       "isOpenEnd": true,
+       "to": "2500-12-31T00:00:00Z"
+      }
+     ],
+     "expiration": "2500-12-31T00:00:59Z"
+    },
+    "properties": {
+     "source": {
+      "id": "efa-addinfo",
+      "name": "efa",
+      "type": "EFA"
+     },
+     "announcementType": "serviceChange",
+     "publishToAreas": "1",
+     "producerRef": "MENTZ-EMS",
+     "deviceRef": "65c871c0fd234d87a5d8903b53da3927",
+     "messageRef": "754eb317-66b2-5191-a86c-fe68e5cbe408",
+     "AlertCause": "unknown",
+     "publisher": "ems.comm.addinfo",
+     "providerCode": "TfNSW",
+     "smsText": "Bus service changes from 22 November",
+     "speechText": "From Sunday 22 November, bus service changes including timetable and route changes and new routes will better connect communities with employment hubs, transport and essential services. They will also provide more frequent, reliable and sustainable transport options.\nRead the news article at transportnsw.info for route-specific information and to learn more about the changes.\nYou can plan ahead using the Trip Planner from Sunday 8 November. Check signage at stops and allow extra time for your journeys during the service changes."
+    },
+    "affected": {
+     "lines": [
+      {
+       "id": "nsw:11S11: :R:",
+       "name": "Sydney Buses Network S11"
+      },
+      {
+       "id": "nsw:11721: :R:",
+       "name": "Sydney Buses Network 721"
+      },
+      {
+       "id": "nsw:11722: :R:",
+       "name": "Sydney Buses Network 722"
+      },
+      {
+       "id": "nsw:11723: :R:",
+       "name": "Sydney Buses Network 723"
+      },
+      {
+       "id": "nsw:11723: :H:",
+       "name": "Sydney Buses Network 723"
+      },
+      {
+       "id": "nsw:11724: :R:",
+       "name": "Sydney Buses Network 724"
+      }
+     ]
+    },
+    "urlText": "Bus service changes from 22 November",
+    "url": "https://transportnsw.info/alerts/details#/ems-81266",
+    "content": "<div><strong>From Sunday 22 November</strong>, bus service changes including timetable and route changes and new routes will better connect communities with employment hubs, transport and essential services. They will also provide more frequent, reliable and sustainable transport options.</div>\n<ul>",
+    "subtitle": "Test: very high priority, six lines"
+   },
+   {
+    "type": "lineInfo",
+    "id": "test-high-4-lines",
+    "version": 494,
+    "priority": "high",
+    "timestamps": {
+     "creation": "2026-11-04T02:47:00Z",
+     "lastModification": "2026-11-04T02:56:00Z",
+     "availability": {
+      "from": "2026-11-04T02:36:00Z",
+      "isOpenEnd": true,
+      "to": "2500-12-31T00:00:00Z"
+     },
+     "validity": [
+      {
+       "from": "2026-11-04T02:36:00Z",
+       "isOpenEnd": true,
+       "to": "2500-12-31T00:00:00Z"
+      }
+     ],
+     "expiration": "2500-12-31T00:00:59Z"
+    },
+    "properties": {
+     "source": {
+      "id": "efa-addinfo",
+      "name": "efa",
+      "type": "EFA"
+     },
+     "announcementType": "serviceChange",
+     "publishToAreas": "1",
+     "producerRef": "MENTZ-EMS",
+     "deviceRef": "65c871c0fd234d87a5d8903b53da3927",
+     "messageRef": "754eb317-66b2-5191-a86c-fe68e5cbe408",
+     "AlertCause": "unknown",
+     "publisher": "ems.comm.addinfo",
+     "providerCode": "TfNSW",
+     "smsText": "Bus service changes from 22 November",
+     "speechText": "From Sunday 22 November, bus service changes including timetable and route changes and new routes will better connect communities with employment hubs, transport and essential services. They will also provide more frequent, reliable and sustainable transport options.\nRead the news article at transportnsw.info for route-specific information and to learn more about the changes.\nYou can plan ahead using the Trip Planner from Sunday 8 November. Check signage at stops and allow extra time for your journeys during the service changes."
+    },
+    "affected": {
+     "lines": [
+      {
+       "id": "nsw:11S11: :R:",
+       "name": "Sydney Buses Network S11"
+      },
+      {
+       "id": "nsw:11721: :R:",
+       "name": "Sydney Buses Network 721"
+      },
+      {
+       "id": "nsw:11722: :R:",
+       "name": "Sydney Buses Network 722"
+      },
+      {
+       "id": "nsw:11723: :R:",
+       "name": "Sydney Buses Network 723"
+      }
+     ]
+    },
+    "urlText": "Bus service changes from 22 November",
+    "url": "https://transportnsw.info/alerts/details#/ems-81266",
+    "content": "<div><strong>From Sunday 22 November</strong>, bus service changes including timetable and route changes and new routes will better connect communities with employment hubs, transport and essential services. They will also provide more frequent, reliable and sustainable transport options.</div>\n<ul>",
+    "subtitle": "Bus service changes from 22 November"
+   },
+   {
+    "type": "stopInfo",
+    "id": "test-high-stop",
+    "version": 1,
+    "priority": "high",
+    "timestamps": {
+     "creation": "2026-05-29T05:05:00Z",
+     "lastModification": "2026-05-29T05:05:00Z",
+     "availability": {
+      "from": "2026-05-29T04:00:00Z",
+      "to": "2027-06-30T13:59:00Z"
+     },
+     "validity": [
+      {
+       "from": "2026-06-08T14:01:00Z",
+       "to": "2027-06-30T14:00:00Z"
+      }
+     ],
+     "expiration": "2027-06-30T14:00:59Z"
+    },
+    "properties": {
+     "source": {
+      "id": "efa-addinfo",
+      "name": "efa",
+      "type": "EFA"
+     },
+     "announcementType": "serviceChange",
+     "publishToAreas": "1",
+     "appliesTo": "departingArriving",
+     "producerRef": "MENTZ-EMS",
+     "deviceRef": "65c871c0fd234d87a5d8903b53da3927",
+     "messageRef": "f3718d0d-6831-5397-bbe2-038f40f84700",
+     "EquipmentReason": "constructionWork",
+     "publisher": "ems.comm.addinfo",
+     "stopIDglobalID": "G211724",
+     "providerCode": "TfNSW",
+     "smsText": "Marshall Rd after Field Pl temporary bus stop closure",
+     "speechText": "Tuesday 9 June 2026 until June 2027\nBus stop\u00a0Marshall Rd after Field Pl will close from Tuesday 9 June for approximately 12 months due to house construction works.\u00a0\nUse nearby stops for route\u00a0513\u00a0- Carlingford Court to West Ryde Station services,"
+    },
+    "affected": {
+     "lines": [
+      {
+       "id": "nsw:17513: :H:",
+       "name": "Sydney Buses Network 513"
+      }
+     ]
+    },
+    "urlText": "Marshall Rd after Field Pl temporary bus stop closure",
+    "url": "https://transportnsw.info/alerts/details#/ems-72782",
+    "content": "<div><strong>Tuesday 9 June 2026 until June 2027</strong></div>\n<ul>\n<li>Bus stop&nbsp;<strong>Marshall Rd after Field Pl</strong> (<strong>211724</strong>) will close from Tuesday 9 June for approximately 12 months due to house construction works.&nbsp;</li>\n<li>Use nearby stops for route&nbsp;<str",
+    "subtitle": "Marshall Rd after Field Pl temporary bus stop closure"
+   },
+   {
+    "type": "areaInfo",
+    "id": "test-expired-area",
+    "version": 246168,
+    "priority": "high",
+    "timestamps": {
+     "creation": "2026-11-03T03:45:00Z",
+     "lastModification": "2026-11-06T00:08:00Z",
+     "availability": {
+      "from": "2026-11-03T03:42:00Z",
+      "isOpenEnd": true,
+      "to": "2500-12-31T00:00:00Z"
+     },
+     "validity": [
+      {
+       "from": "2025-01-01T00:00:00Z",
+       "to": "2026-01-01T00:00:00Z"
+      }
+     ],
+     "expiration": "2500-12-31T00:00:59Z"
+    },
+    "properties": {
+     "source": {
+      "id": "efa-addinfo",
+      "name": "efa",
+      "type": "EFA"
+     },
+     "announcementType": "general",
+     "publishToAreas": "1",
+     "producerRef": "MENTZ-EMS",
+     "deviceRef": "65c871c0fd234d87a5d8903b53da3927",
+     "messageRef": "27d93544-92f8-5578-abd7-fe35814b4eff",
+     "MiscellaneousReason": "securityAlert",
+     "publisher": "ems.comm.addinfo",
+     "stopIDglobalID": "0",
+     "providerCode": "TfNSW",
+     "smsText": "BUS INDUSTRIAL ACTION may affect some services in Sydney\u2019s Eastern Suburbs, Northern Beaches, Lower North Shore and Inner North-West."
+    },
+    "affected": {
+     "lines": []
+    },
+    "urlText": "BUS INDUSTRIAL ACTION may affect some services in Sydney\u2019s Eastern Suburbs, Northern Beaches, Lower North Shore and Inner North-West.",
+    "url": "https://transportnsw.info/alerts/details#/ems-81146",
+    "content": "<div>From Wednesday 4th November, some services may be affected by industrial action which involves drivers not operating certain vehicles.\u202f&nbsp;<br />Buses may be delayed or cancelled and there may be longer wait times and crowding at major interchanges.\u202f&nbsp;<br />Plan ahead, allow extra travel ",
+    "subtitle": "BUS INDUSTRIAL ACTION may affect some services in Sydney\u2019s Eastern Suburbs, Northern Beaches, Lower North Shore and Inner North-West."
+   }
+  ],
+  "affected": {
+   "lines": [],
+   "stops": []
+  }
+ }
+}

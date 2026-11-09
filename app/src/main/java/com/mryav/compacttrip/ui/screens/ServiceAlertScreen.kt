@@ -15,6 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.mryav.compacttrip.ui.components.FocusSurface
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -38,8 +43,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * One service alert (Figma 11:1634): title, affected lines, "Open transportnsw.info", and the
- * alert's HTML body. D-pad scrolls the body when there's nothing else to focus.
+ * One service alert (Figma 11:1634): title, affected lines, "Open transportnsw.info", "Hide alert"
+ * (only for a Home network banner: [onHide]), and the alert's HTML body. D-pad scrolls the body
+ * when there's nothing else to focus.
  */
 @Composable
 fun ServiceAlertScreen(
@@ -47,6 +53,7 @@ fun ServiceAlertScreen(
     onBack: () -> Unit,
     onOpenUrl: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onHide: (() -> Unit)? = null,
 ) {
     val body = remember(notice.html) { notice.html?.let(::alertBody) }
     val scroll = rememberScrollState()
@@ -93,6 +100,24 @@ fun ServiceAlertScreen(
                     color = Palette.LinkRow,
                     onClick = { onOpenUrl(url) },
                 )
+            }
+            if (onHide != null) {
+                FocusSurface(onClick = onHide, color = Palette.NoticeBackground, modifier = Modifier.fillMaxWidth()) { focused ->
+                    val content = if (focused) Palette.FocusedContent else Palette.NoticeText
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.du, vertical = 20.du),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.du),
+                    ) {
+                        BasicText("Hide alert", style = Type.row(content), modifier = Modifier.weight(1f))
+                        Image(
+                            painter = painterResource(R.drawable.ic_visibility_off),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(content),
+                            modifier = Modifier.size(40.du),
+                        )
+                    }
+                }
             }
             Column(
                 modifier = Modifier
