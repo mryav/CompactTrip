@@ -2,7 +2,6 @@ package com.mryav.compacttrip.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,15 +38,6 @@ import kotlin.math.roundToInt
 
 enum class ConnectionStatus { Hidden, Checking, Success, Unsuccessful, Offline, ServiceUnavailable }
 
-private const val EXPAND_MS = 420
-private const val COLLAPSE_MS = 240
-
-/** Smooth "ease out" for expanding (fast start, gentle landing). */
-private val ExpandEasing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
-
-/** Gentle "ease in" for collapsing. */
-private val CollapseEasing = CubicBezierEasing(0.55f, 0f, 0.75f, 0.2f)
-
 /**
  * API key connection status (Figma 22:1562). Starts collapsed. Each status change collapses the
  * container (if open), swaps the content, then expands it downwards. The content is anchored to the
@@ -61,10 +51,10 @@ fun ConnectionStatusBanner(status: ConnectionStatus, modifier: Modifier = Modifi
 
     LaunchedEffect(status) {
         if (status == shown && reveal.value == 1f) return@LaunchedEffect
-        if (reveal.value > 0f) reveal.animateTo(0f, tween(COLLAPSE_MS, easing = CollapseEasing))
+        if (reveal.value > 0f) reveal.animateTo(0f, tween(Motion.COLLAPSE_MS, easing = Motion.Collapse))
         shown = status
         if (status != ConnectionStatus.Hidden) {
-            reveal.animateTo(1f, tween(EXPAND_MS, easing = ExpandEasing))
+            reveal.animateTo(1f, tween(Motion.EXPAND_MS, easing = Motion.Expand))
         }
     }
 
@@ -87,15 +77,7 @@ fun ConnectionStatusBanner(status: ConnectionStatus, modifier: Modifier = Modifi
 private fun StatusContent(status: ConnectionStatus) {
     when (status) {
         ConnectionStatus.Hidden -> Unit
-        ConnectionStatus.Checking -> Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Palette.NeutralStatusBackground)
-                .padding(horizontal = 16.du, vertical = 20.du),
-            contentAlignment = Alignment.Center,
-        ) {
-            LoadingSpinner(size = 40.du, color = Palette.NeutralStatusForeground)
-        }
+        ConnectionStatus.Checking -> StatusSpinner()
         ConnectionStatus.Success -> StatusMessage(
             title = "Successful connection",
             detail = "Your API key is functional",
@@ -127,8 +109,23 @@ private fun StatusContent(status: ConnectionStatus) {
     }
 }
 
+/** Grey status block with the platform spinner (checking, retrying). */
 @Composable
-private fun StatusMessage(
+fun StatusSpinner(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Palette.NeutralStatusBackground)
+            .padding(horizontal = 16.du, vertical = 20.du),
+        contentAlignment = Alignment.Center,
+    ) {
+        LoadingSpinner(color = Palette.NeutralStatusForeground)
+    }
+}
+
+/** Status block: title and detail on the left, a 40 icon on the right (Figma 22:1562, 25:2749). */
+@Composable
+fun StatusMessage(
     title: String,
     detail: String,
     @DrawableRes icon: Int,

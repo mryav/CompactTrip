@@ -12,4 +12,5 @@ val Roboto: FontFamily = FontFamily.SansSerif
 val RobotoCondensed: FontFamily = FontFamily(
     Font(DeviceFontFamilyName("sans-serif-condensed"), FontWeight.Normal),
     Font(DeviceFontFamilyName("sans-serif-condensed-medium"), FontWeight.Medium),
+    Font(DeviceFontFamilyName("sans-serif-condensed"), FontWeight.Bold),
 )

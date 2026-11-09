@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 11 and below (RUIO Joy): back up the saved API key. -->
+<!-- Android 11 and below (RUIO Joy): back up the saved API key and trips. -->
 <full-backup-content>
     <include domain="sharedpref" path="credentials.xml" />
+    <include domain="sharedpref" path="trips.xml" />
 </full-backup-content>

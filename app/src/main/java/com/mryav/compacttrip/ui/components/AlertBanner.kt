@@ -17,19 +17,24 @@ import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
 
-/** High / veryHigh priority service alert banner (red). Figma: "veryHigh or High priority banner". */
+/** Service alert banner: red for high/veryHigh priority, blue otherwise (Figma rule). */
 @Composable
 fun AlertBanner(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    urgent: Boolean = true,
 ) {
     FocusSurface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        color = Palette.AlertHighBackground,
+        color = if (urgent) Palette.AlertHighBackground else Palette.NoticeBackground,
     ) { focused ->
-        val content = if (focused) Palette.FocusedContent else Palette.AlertForeground
+        val content = when {
+            focused -> Palette.FocusedContent
+            urgent -> Palette.AlertForeground
+            else -> Palette.NoticeText
+        }
         Row(
             modifier = Modifier.padding(horizontal = 16.du, vertical = 20.du),
             verticalAlignment = Alignment.CenterVertically,

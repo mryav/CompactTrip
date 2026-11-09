@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -54,14 +55,17 @@ const val FOCUS_SHADOW_FADE_MS = 400
  * and [content] is told `focused = true` so it switches its text and icons to [Palette.FocusedContent].
  * Nested chips (line badges, countdown boxes) keep their colours. The fill follows [shape].
  * Pressed (touch or OK): a light dark overlay. When [enabled] is false it is neither clickable nor focusable.
+ * With [onClick] = null it's focusable but not clickable (e.g. preview cards, focused only to scroll).
  */
 @Composable
 fun FocusSurface(
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     color: Color = Color.Transparent,
     shape: Shape = RectangleShape,
     enabled: Boolean = true,
+    /** false: focus shows only the inner shadow (over the content), no orange fill. For large cards. */
+    fillOnFocus: Boolean = true,
     onClickLabel: String? = null,
     contentAlignment: Alignment = Alignment.TopStart,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
@@ -71,27 +75,35 @@ fun FocusSurface(
 
     Box(
         modifier = modifier
-            .focusHighlight(focused = focused, color = color, shape = shape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = PressOverlayIndication,
-                enabled = enabled,
-                onClickLabel = onClickLabel,
-                role = Role.Button,
-                onClick = onClick,
+            .focusHighlight(focused = focused, color = color, shape = shape, fill = fillOnFocus)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = PressOverlayIndication,
+                        enabled = enabled,
+                        onClickLabel = onClickLabel,
+                        role = Role.Button,
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier.focusable(enabled = enabled, interactionSource = interactionSource)
+                },
             ),
         contentAlignment = contentAlignment,
     ) {
-        content(focused)
+        content(focused && fillOnFocus)
     }
 }
 
 /**
  * Background + focus highlight for anything focusable, including text fields that can't use
  * [FocusSurface]: [color] normally, focus fill + fading inner shadow when [focused].
+ * With [fill] = false, focus keeps [color] and only the shadow fades in, drawn over the content
+ * (large cards whose own blocks would otherwise hide it).
  */
 @Composable
-fun Modifier.focusHighlight(focused: Boolean, color: Color, shape: Shape = RectangleShape): Modifier {
+fun Modifier.focusHighlight(focused: Boolean, color: Color, shape: Shape = RectangleShape, fill: Boolean = true): Modifier {
     // Fill switches instantly; the shadow fades in. Read only in the draw phase (no recomposition per frame).
     val shadowAlpha = animateFloatAsState(
         targetValue = if (focused) 1f else 0f,
@@ -102,20 +114,22 @@ fun Modifier.focusHighlight(focused: Boolean, color: Color, shape: Shape = Recta
     val shadowBlur = 4.du
     return this
         .clip(shape)
-        .background(if (focused) Palette.FocusFill else color)
-        .focusInnerShadow(shape, shadowOffset, shadowBlur) { shadowAlpha.value }
+        .background(if (focused && fill) Palette.FocusFill else color)
+        .focusInnerShadow(shape, shadowOffset, shadowBlur, overContent = !fill) { shadowAlpha.value }
 }
 
 /**
  * Figma inner shadow: #00000040, offset (0, [offset]), blur [blur], spread 0, following [shape].
  * Built the way Figma renders it: the area outside the shape, shifted down by [offset], blurred,
  * then clipped to the shape. This gives the dark top band plus the faint side shading and correct
- * rounded corners. Drawn over the fill, under the content. [alpha] (0..1) is read at draw time.
+ * rounded corners. Drawn over the fill and under the content, or over the content when
+ * [overContent]. [alpha] (0..1) is read at draw time.
  */
 private fun Modifier.focusInnerShadow(
     shape: Shape,
     offset: Dp,
     blur: Dp,
+    overContent: Boolean,
     alpha: () -> Float,
 ): Modifier = drawWithCache {
     val outline = shape.createOutline(size, layoutDirection, this)
@@ -142,13 +156,16 @@ private fun Modifier.focusInnerShadow(
     }
     val androidShadow = shadow.asAndroidPath()
 
-    onDrawBehind {
+    onDrawWithContent {
+        if (overContent) drawContent()
         val a = alpha()
-        if (a <= 0f) return@onDrawBehind
-        paint.alpha = (baseAlpha * a).roundToInt()
-        clipPath(clip) {
-            drawIntoCanvas { it.nativeCanvas.drawPath(androidShadow, paint) }
+        if (a > 0f) {
+            paint.alpha = (baseAlpha * a).roundToInt()
+            clipPath(clip) {
+                drawIntoCanvas { it.nativeCanvas.drawPath(androidShadow, paint) }
+            }
         }
+        if (!overContent) drawContent()
     }
 }
 

@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.ui.theme.Palette
@@ -61,13 +63,19 @@ fun AppBar(
     }
 }
 
-/** 40×40 header icon. Focused: orange rounded (5) square behind the icon. */
+/**
+ * 40×40 header icon. Focused: orange rounded (5) square behind the icon.
+ * [busy] swaps the icon for a spinner (e.g. Refresh while a refresh runs); it stays focusable, so
+ * focus doesn't jump when the icon changes.
+ */
 @Composable
 fun AppBarIcon(
     @DrawableRes icon: Int,
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    busy: Boolean = false,
+    busyDescription: String = contentDescription,
 ) {
     FocusSurface(
         onClick = onClick,
@@ -75,12 +83,20 @@ fun AppBarIcon(
         shape = RoundedCornerShape(5.du),
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = contentDescription,
-            colorFilter = ColorFilter.tint(Palette.OnDark),
-            modifier = Modifier.fillMaxSize(),
-        )
+        if (busy) {
+            LoadingSpinner(
+                color = Palette.OnDark,
+                size = 32.du,
+                modifier = Modifier.semantics { this.contentDescription = busyDescription },
+            )
+        } else {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = contentDescription,
+                colorFilter = ColorFilter.tint(Palette.OnDark),
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
 

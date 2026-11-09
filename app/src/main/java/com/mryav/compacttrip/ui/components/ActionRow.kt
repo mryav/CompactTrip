@@ -28,7 +28,7 @@ import com.mryav.compacttrip.ui.theme.du
 @Composable
 fun ActionRow(
     label: String,
-    @DrawableRes icon: Int,
+    @DrawableRes icon: Int?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
@@ -59,12 +59,14 @@ fun ActionRow(
                     BasicText(text = subtitle, style = Type.condensedSmall(Palette.OnDarkSubtle))
                 }
             }
-            Image(
-                painter = painterResource(icon),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(Palette.OnDark),
-                modifier = Modifier.size(40.du),
-            )
+            if (icon != null) {
+                Image(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(Palette.OnDark),
+                    modifier = Modifier.size(40.du),
+                )
+            }
         }
     }
 }
