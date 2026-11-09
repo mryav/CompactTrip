@@ -3,4 +3,5 @@
 <full-backup-content>
     <include domain="sharedpref" path="credentials.xml" />
     <include domain="sharedpref" path="trips.xml" />
+    <include domain="sharedpref" path="widgets.xml" />
 </full-backup-content>

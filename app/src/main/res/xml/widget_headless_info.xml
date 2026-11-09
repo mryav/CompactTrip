@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Headless list (Figma 30:4218 / 30:4317): rows only, so it can be as short as one row. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.mryav.compacttrip.WidgetSetupActivity"
+    android:description="@string/widget_headless_description"
+    android:initialLayout="@layout/widget_headless_list"
+    android:minWidth="180dp"
+    android:minHeight="180dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="70dp"
+    android:previewImage="@drawable/widget_preview_headless"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

@@ -9,6 +9,8 @@ import com.mryav.compacttrip.data.TfnswHttp
 import com.mryav.compacttrip.data.NetworkAlerts
 import com.mryav.compacttrip.data.TripBoard
 import com.mryav.compacttrip.data.TripRepository
+import com.mryav.compacttrip.widget.WidgetStore
+import com.mryav.compacttrip.widget.WidgetUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +27,12 @@ class AppContainer(app: Application) {
     val savedTrips = SavedTripsStore(app)
     val board = TripBoard(trips, savedTrips, appScope)
     val alerts = NetworkAlerts(http, savedTrips, appScope)
+    val widgetStore = WidgetStore(app)
+    val widgets = WidgetUpdater(app, widgetStore, trips)
+
+    init {
+        trips.onLoaded = widgets::onTripLoaded
+    }
 }
 
 class CompactTripsApplication : Application() {

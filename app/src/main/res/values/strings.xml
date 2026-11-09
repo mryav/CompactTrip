@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CompactTrips</string>
+    <string name="widget_default_list_label">Default list</string>
+    <string name="widget_default_list_description">A list of services with the route and when it was updated.</string>
+    <string name="widget_headless_label">Headless list</string>
+    <string name="widget_headless_description">Just the services. Tap a service to open the app and refresh.</string>
+    <string name="widget_fixed_card_label">Fixed card</string>
+    <string name="widget_fixed_card_description">The next 1–2 services.</string>
 </resources>

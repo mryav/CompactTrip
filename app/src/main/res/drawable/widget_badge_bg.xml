@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Line badge shape; the line colour is applied with a colour filter (RemoteViews on API 30
+     can't set a background tint). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="@dimen/w_radius_card" />
+</shape>

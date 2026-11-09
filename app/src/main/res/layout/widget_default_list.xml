@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Default list widget (Figma 30:3733 wide, 30:4454 narrow): header with refresh, scrolling services, "Updated" footer. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_dark_bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/widget_header_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/w_pad8">
+
+        <LinearLayout
+            android:id="@+id/header"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:foreground="@drawable/widget_ripple_light"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title_from"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="-0.02"
+                android:maxLines="1"
+                android:textColor="#FFFFFFFF"
+                android:textSize="@dimen/w_text_from" />
+
+            <TextView
+                android:id="@+id/title_to"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="-0.02"
+                android:maxLines="1"
+                android:textColor="#FFFFFFFF"
+                android:textSize="@dimen/w_text_to" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/refresh"
+            android:layout_width="@dimen/w_icon"
+            android:layout_height="@dimen/w_icon"
+            android:contentDescription="Refresh"
+            android:foreground="@drawable/widget_ripple_light">
+
+            <ImageView
+                android:id="@+id/refresh_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_refresh"
+                android:tint="#FFFFFFFF" />
+
+            <ProgressBar
+                android:id="@+id/refreshing"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="@dimen/w_spinner"
+                android:layout_height="@dimen/w_spinner"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="#FFFFFFFF"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:listSelector="@android:color/transparent"
+            android:scrollbars="none" />
+
+        <!-- Setup preview only: rows added directly (a remote list can't bind inside the app). -->
+        <LinearLayout
+            android:id="@+id/rows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/widget_ripple_light"
+            android:fontFamily="sans-serif-condensed"
+            android:gravity="center"
+            android:letterSpacing="-0.02"
+            android:padding="@dimen/w_pad8"
+            android:textColor="#FFFFFFFF"
+            android:textSize="@dimen/w_text_message"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.8"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="end"
+        android:letterSpacing="-0.02"
+        android:maxLines="1"
+        android:paddingStart="@dimen/w_pad8"
+        android:paddingTop="@dimen/w_pad4"
+        android:paddingEnd="@dimen/w_pad8"
+        android:paddingBottom="@dimen/w_pad4"
+        android:textColor="#FFFFFFFF"
+        android:textSize="@dimen/w_text_footer" />
+</LinearLayout>

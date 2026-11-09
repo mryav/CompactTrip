@@ -92,6 +92,13 @@ class PlanTripSession {
 
     val ready: Boolean get() = origin != null && destination != null && origin?.id != destination?.id
 
+    /** Swap origin and destination (the results reload for the reverse trip). */
+    fun swap() {
+        val o = origin
+        origin = destination
+        destination = o
+    }
+
     fun refresh() {
         refreshRequests++
     }
@@ -164,6 +171,9 @@ fun PlanTripScreen(
             title = "Plan new trip",
             navigation = { BackButton(onClick = onBack, modifier = Modifier.focusRequester(initialFocus)) },
         ) {
+            if (origin != null || destination != null) {
+                AppBarIcon(R.drawable.ic_swap_vert, "Swap origin and destination", onClick = session::swap)
+            }
             if (session.ready) {
                 AppBarIcon(
                     R.drawable.ic_refresh,

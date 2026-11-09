@@ -6,6 +6,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -50,6 +51,7 @@ import com.mryav.compacttrip.ui.components.AppBarIcon
 import com.mryav.compacttrip.ui.components.BackButton
 import com.mryav.compacttrip.ui.components.NoticesChip
 import com.mryav.compacttrip.ui.components.ServiceRow
+import com.mryav.compacttrip.ui.components.SurfaceIcon
 import com.mryav.compacttrip.ui.components.UpdatedLabel
 import com.mryav.compacttrip.ui.components.focusEntry
 import com.mryav.compacttrip.ui.components.rememberInitialFocus
@@ -60,6 +62,8 @@ import com.mryav.compacttrip.ui.theme.du
 /**
  * View Services (Figma 6:600): every upcoming journey for a saved trip. The Updated label and the
  * trip header stay pinned while the list scrolls. ⋮ (or the Menu key) offers removing the trip.
+ * Swap (Figma 34:5689) opens the reverse trip as a new Plan new trip page rather than flipping this
+ * one, so it's never unclear whether the saved trip changed.
  */
 @Composable
 fun ViewServicesScreen(
@@ -74,6 +78,8 @@ fun ViewServicesScreen(
     onOpenNotices: () -> Unit,
     onRemove: () -> Unit,
     onPreferences: () -> Unit,
+    /** Swap: plan the same trip the other way (a new Plan new trip page; the saved trip is unchanged). */
+    onReverse: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -120,9 +126,13 @@ fun ViewServicesScreen(
                     .padding(horizontal = 16.du, vertical = 20.du),
                 verticalArrangement = Arrangement.spacedBy(12.du),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.du)) {
-                    BasicText(trip.origin.shortName, style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    BasicText(trip.destination.shortName, style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.du)) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.du)) {
+                        BasicText(trip.origin.shortName, style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        BasicText(trip.destination.shortName, style = Type.title(Palette.TitleText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    // Opens the reverse trip in Plan new trip; the saved trip itself never flips.
+                    SurfaceIcon(R.drawable.ic_swap_vert, "Plan the reverse trip", onClick = onReverse)
                 }
                 if (summary != null && summary.notices.isNotEmpty()) {
                     NoticesChip(notices = summary.notices, onClick = onOpenNotices)

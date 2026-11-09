@@ -41,6 +41,7 @@ import com.mryav.compacttrip.ui.components.DepartureCarousel
 import com.mryav.compacttrip.ui.components.DepartureLoadingPlaceholder
 import com.mryav.compacttrip.ui.components.DoneAction
 import com.mryav.compacttrip.ui.components.Motion
+import com.mryav.compacttrip.ui.components.NextAction
 import com.mryav.compacttrip.ui.components.PlaceRow
 import com.mryav.compacttrip.ui.components.StatusMessage
 import com.mryav.compacttrip.ui.components.StatusSpinner
@@ -75,6 +76,9 @@ private fun Preview.kind(): Any = if (this is Preview.Loaded) Preview.Loading::c
  * Add trip to home (Figma 4:1614 empty; 25:2749 preview states). Origin/Destination open the stop
  * search; once both are set a compact preview of the next departures appears. Done saves the trip
  * whether or not the preview loads.
+ *
+ * Widget setup reuses it as "Select route" (Figma 30:4865): [title], [previewLabel] and a "Next"
+ * header action ([next]) instead of Done.
  */
 @Composable
 fun AddTripScreen(
@@ -90,6 +94,9 @@ fun AddTripScreen(
     onPreferences: () -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    title: String = "Add trip to home",
+    previewLabel: String = "Preview",
+    next: Boolean = false,
 ) {
     val ready = origin != null && destination != null && origin.id != destination.id
     // Reset as soon as the stops change, so the previous trip's preview never shows for a frame.
@@ -129,10 +136,10 @@ fun AddTripScreen(
             .focusEntry(initialFocus),
     ) {
         AppBar(
-            title = "Add trip to home",
+            title = title,
             navigation = { BackButton(onClick = onBack, modifier = Modifier.focusRequester(initialFocus)) },
         ) {
-            DoneAction(enabled = ready, onClick = onDone)
+            if (next) NextAction(enabled = ready, onClick = onDone) else DoneAction(enabled = ready, onClick = onDone)
         }
         // The preview scrolls in the background; the pickers stay pinned in the foreground. Keeping
         // the scroll viewport above the pickers (rather than under them) means D-pad focus never
@@ -148,7 +155,7 @@ fun AddTripScreen(
         ) {
             if (ready) {
                 BasicText(
-                    "Preview",
+                    previewLabel,
                     style = Type.condensed24(Palette.BodyText),
                     modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
                 )

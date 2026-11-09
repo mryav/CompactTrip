@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Line badge (Roboto Bold 16, padding 8/6, radius 4). Added to a row with RemoteViews.addView. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/w_pad4">
+
+    <ImageView
+        android:id="@+id/badge_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_badge_bg" />
+
+    <!-- Figma trims text to its cap height; Android lines are taller, so the vertical padding is
+         smaller than the design's 6 to keep the same badge height.
+         match_parent on both children: a wrap_content FrameLayout only stretches match_parent
+         children to its size when there are two or more, which is what sizes the colour layer. -->
+    <TextView
+        android:id="@+id/badge_label"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:paddingStart="@dimen/w_pad8"
+        android:paddingTop="@dimen/w_pad2"
+        android:paddingEnd="@dimen/w_pad8"
+        android:paddingBottom="@dimen/w_pad2"
+        android:textColor="#FFFFFFFF"
+        android:textSize="@dimen/w_text_badge"
+        android:textStyle="bold" />
+</FrameLayout>

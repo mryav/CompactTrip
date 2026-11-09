@@ -47,6 +47,8 @@ object Palette {
     val WalkChipBorder = Color(0xFF586065)
     val DurationChipBorder = Color(0xFFA1A1A1)
     val MutedText = Color(0xFF7F7F7F)
+    /** Icons on white surfaces (Material #1C1B1F at 70%, Figma swap_vert). */
+    val IconOnLight = Color(0xB31C1B1F)
 
     /** Progress indicators (Figma variables). */
     val OnTime = Color(0xFF008D00)

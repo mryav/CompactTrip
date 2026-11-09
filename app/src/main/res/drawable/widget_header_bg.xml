@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- List widget header: a further rgba(0,0,0,0.29) over the widget background. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#4A000000" />
+    <corners android:topLeftRadius="@dimen/w_radius_widget" android:topRightRadius="@dimen/w_radius_widget" />
+</shape>

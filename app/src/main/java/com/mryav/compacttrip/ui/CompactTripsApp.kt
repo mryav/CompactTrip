@@ -46,6 +46,7 @@ import com.mryav.compacttrip.ui.screens.TripDetailsScreen
 import com.mryav.compacttrip.ui.screens.ViewServicesScreen
 import com.mryav.compacttrip.ui.screens.USER_GUIDE_URL
 import com.mryav.compacttrip.ui.screens.WelcomeScreen
+import com.mryav.compacttrip.widget.WidgetConfig
 import kotlinx.coroutines.delay
 
 enum class Route {
@@ -81,6 +82,8 @@ fun CompactTripsApp(
     container: AppContainer,
     openUrl: (String) -> Unit,
     showMessage: (String) -> Unit,
+    /** Opened from a widget: that route's list of services. */
+    widgetRoute: WidgetConfig? = null,
 ) {
     val keyStore = container.keyStore
     val keyChecker = container.keyChecker
@@ -192,6 +195,21 @@ fun CompactTripsApp(
         noticeIsBanner = true
         selectedNotice = notice
         push(Route.ServiceAlert)
+    }
+    // From a widget: the route's services, not one service (the widget's data may be out of date).
+    // A trip on Home with the same route opens View Services; any other route opens Plan new trip.
+    LaunchedEffect(widgetRoute) {
+        val w = widgetRoute ?: return@LaunchedEffect
+        if (stack.last() != Route.Home) return@LaunchedEffect
+        val saved = trips.firstOrNull { w.matches(it.origin, it.destination, it.preferences) }
+        if (saved != null) {
+            openTrip(saved)
+        } else {
+            plan.reset(w.preferences)
+            plan.origin = w.origin
+            plan.destination = w.destination
+            push(Route.PlanTrip)
+        }
     }
     val liveTrip = plannedTrip ?: trips.firstOrNull { it.id == selectedTripId }
     val selectedLoad = selectedTripId?.let { board.loads[it] }
@@ -413,6 +431,12 @@ fun CompactTripsApp(
                             onPreferences = {
                                 prefsFor = PrefsFor.SavedTrip
                                 push(Route.TripPreferences)
+                            },
+                            onReverse = {
+                                plan.reset(trip.preferences)
+                                plan.origin = trip.destination
+                                plan.destination = trip.origin
+                                push(Route.PlanTrip)
                             },
                             onRemove = {
                                 container.savedTrips.remove(trip.id)

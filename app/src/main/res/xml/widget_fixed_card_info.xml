@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fixed card (Figma 30:4584 / 30:4829): cards grow to fit their text; resizing the width switches between one and two cards. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.mryav.compacttrip.WidgetSetupActivity"
+    android:description="@string/widget_fixed_card_description"
+    android:initialLayout="@layout/widget_fixed_card"
+    android:minWidth="250dp"
+    android:minHeight="180dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="180dp"
+    android:previewImage="@drawable/widget_preview_fixed_card"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

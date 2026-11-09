@@ -2,6 +2,8 @@
 <resources>
     <color name="page">#FFEDEDED</color>
     <color name="app_bar">#FF2A2A2A</color>
+    <!-- App icon background (Figma 34:5708). -->
+    <color name="ic_launcher_background">#FFFF710B</color>
 
     <style name="Theme.CompactTrips" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/page</item>

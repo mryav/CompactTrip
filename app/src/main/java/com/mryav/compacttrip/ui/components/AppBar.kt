@@ -101,6 +101,32 @@ fun AppBarIcon(
     }
 }
 
+/**
+ * 40×40 icon on a light surface (e.g. swap on View Services' trip header, Figma 32:5472): the icon
+ * is #1C1B1F at 70%; focused, it turns white on the orange rounded square like header icons.
+ */
+@Composable
+fun SurfaceIcon(
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FocusSurface(
+        onClick = onClick,
+        modifier = modifier.size(40.du),
+        shape = RoundedCornerShape(5.du),
+        contentAlignment = Alignment.Center,
+    ) { focused ->
+        Image(
+            painter = painterResource(icon),
+            contentDescription = contentDescription,
+            colorFilter = ColorFilter.tint(if (focused) Palette.FocusedContent else Palette.IconOnLight),
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
 @Composable
 fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     AppBarIcon(R.drawable.ic_arrow_back, "Back", onClick, modifier)
@@ -134,6 +160,38 @@ fun DoneAction(
                 modifier = Modifier.size(40.du),
             )
             BasicText(text = label, style = Type.condensed(tint), maxLines = 1)
+        }
+    }
+}
+
+/** "Next ›" header action (widget setup). Disabled: 40% opacity and skipped by focus. */
+@Composable
+fun NextAction(
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    label: String = "Next",
+) {
+    FocusSurface(
+        onClick = onClick,
+        enabled = enabled,
+        rippleColor = Palette.OnDark,
+        modifier = modifier.alpha(if (enabled) 1f else 0.4f),
+        shape = RoundedCornerShape(5.du),
+    ) { focused ->
+        val tint = if (focused) Palette.FocusedContent else Palette.OnDarkSubtle
+        Row(
+            modifier = Modifier.padding(start = 4.du),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.du),
+        ) {
+            BasicText(text = label, style = Type.condensed(tint), maxLines = 1)
+            Image(
+                painter = painterResource(R.drawable.ic_arrow_forward_ios),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(tint),
+                modifier = Modifier.size(40.du),
+            )
         }
     }
 }

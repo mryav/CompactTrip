@@ -13,6 +13,9 @@ import java.time.format.DateTimeFormatter
 
 class TripRepository(private val http: TfnswHttp) {
 
+    /** Told about every successful load (widgets showing the same route update from it). */
+    var onLoaded: ((origin: Stop, destination: Stop, preferences: TripPreferences, summary: TripSummary) -> Unit)? = null
+
     /**
      * Next journeys from [origin] to [destination] (Sydney time), leaving now unless [preferences]
      * say otherwise. Never cached.
@@ -28,7 +31,11 @@ class TripRepository(private val http: TfnswHttp) {
             deserializer = TripResponse.serializer(),
         )
         return when (result) {
-            is ApiResult.Ok -> ApiResult.Ok(result.value.toSummary())
+            is ApiResult.Ok -> {
+                val summary = result.value.toSummary()
+                onLoaded?.invoke(origin, destination, preferences, summary)
+                ApiResult.Ok(summary)
+            }
             ApiResult.Unauthorized -> ApiResult.Unauthorized
             ApiResult.Offline -> ApiResult.Offline
             ApiResult.ServiceUnavailable -> ApiResult.ServiceUnavailable
