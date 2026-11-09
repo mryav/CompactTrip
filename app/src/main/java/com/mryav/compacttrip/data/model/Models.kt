@@ -33,7 +33,13 @@ data class Stop(
 
 @Immutable
 @Serializable
-data class SavedTrip(val id: String, val origin: Stop, val destination: Stop) {
+data class SavedTrip(
+    val id: String,
+    val origin: Stop,
+    val destination: Stop,
+    /** Modes, accessibility and route type for this trip (no timing). Older saves default to all. */
+    val preferences: TripPreferences = TripPreferences.Default,
+) {
     val title: String get() = "${origin.shortName} → ${destination.shortName}"
 }
 

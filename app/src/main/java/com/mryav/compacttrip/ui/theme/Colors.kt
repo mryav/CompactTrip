@@ -8,6 +8,8 @@ object Palette {
     val Page = Color(0xFFEDEDED)
     val Card = Color.White
     val ActionRow = Color(0xFF5D5D5D)
+    /** Day/Hour/Minute boxes inside a selected timing option (Figma 27:3192). */
+    val TimeBox = Color(0xFF787474)
     val LinkRow = Color(0xFF3E7CB2)
     val OnDark = Color.White
     val OnDarkSubtle = Color(0xFFEDEDED)

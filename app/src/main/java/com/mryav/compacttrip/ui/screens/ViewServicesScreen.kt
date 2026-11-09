@@ -2,9 +2,7 @@ package com.mryav.compacttrip.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -32,6 +33,9 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import com.mryav.compacttrip.R
@@ -68,18 +72,28 @@ fun ViewServicesScreen(
     onOpenJourney: (Journey) -> Unit,
     onOpenNotices: () -> Unit,
     onRemove: () -> Unit,
+    onPreferences: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val summary = load?.summary
     val initialFocus = rememberInitialFocus()
+    val menuFocus = remember { FocusRequester() }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Palette.Page)
-                .focusEntry(initialFocus)
+                // While the menu is open, focus belongs in it (see TripPreferencesScreen's pick list).
+                .focusProperties { onEnter = { (if (menuOpen) menuFocus else initialFocus).requestFocus() } }
+                .focusGroup()
+                .onPreviewKeyEvent { event ->
+                    if (!menuOpen) return@onPreviewKeyEvent false
+                    // Key down and up: the first press after a touch only leaves touch mode on key down.
+                    runCatching { menuFocus.requestFocus() }
+                    true
+                }
                 .onKeyEvent { event ->
                     if (event.key == Key.Menu && event.type == KeyEventType.KeyUp) {
                         menuOpen = true
@@ -148,6 +162,11 @@ fun ViewServicesScreen(
         if (menuOpen) {
             TripMenu(
                 trip = trip,
+                cancel = menuFocus,
+                onPreferences = {
+                    menuOpen = false
+                    onPreferences()
+                },
                 onRemove = {
                     menuOpen = false
                     onRemove()
@@ -163,20 +182,34 @@ fun ViewServicesScreen(
  * open and starts on Cancel, so removing a trip always takes a deliberate move.
  */
 @Composable
-private fun TripMenu(trip: SavedTrip, onRemove: () -> Unit, onDismiss: () -> Unit) {
-    val cancel = remember { FocusRequester() }
-    LaunchedEffect(Unit) { cancel.requestFocus() }
+private fun TripMenu(
+    trip: SavedTrip,
+    cancel: FocusRequester,
+    onPreferences: () -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(Unit) {
+        focusManager.clearFocus(force = true)
+        repeat(10) {
+            withFrameNanos { }
+            if (runCatching { cancel.requestFocus(FocusDirection.Enter) }.getOrDefault(false)) return@LaunchedEffect
+        }
+    }
     BackHandler(onBack = onDismiss)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
+            // A tap outside closes it. Not `clickable`: that would make the backdrop focusable.
+            .pointerInput(Unit) { detectTapGestures { onDismiss() } },
         contentAlignment = Alignment.BottomCenter,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .pointerInput(Unit) { detectTapGestures { } } // taps on the sheet itself don't close it
                 .background(Palette.Page)
                 .navigationBarsPadding()
                 .focusProperties { onExit = { cancelFocusChange() } }
@@ -189,6 +222,12 @@ private fun TripMenu(trip: SavedTrip, onRemove: () -> Unit, onDismiss: () -> Uni
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),
+            )
+            ActionRow(
+                label = "Trip preferences",
+                subtitle = trip.preferences.summary(java.time.LocalDate.now()),
+                icon = R.drawable.ic_arrow_forward,
+                onClick = onPreferences,
             )
             ActionRow(label = "Remove trip from home", icon = null, onClick = onRemove)
             ActionRow(label = "Cancel", icon = null, onClick = onDismiss, modifier = Modifier.focusRequester(cancel))

@@ -62,7 +62,7 @@ class TripBoard(
             _state.update { it.copy(refreshing = true) }
             val gate = Semaphore(MAX_PARALLEL)
             val results = list.map { trip ->
-                async { trip.id to gate.withPermit { trips.upcoming(trip.origin, trip.destination) } }
+                async { trip.id to gate.withPermit { trips.upcoming(trip.origin, trip.destination, trip.preferences) } }
             }.awaitAll().toMap()
 
             _state.update { old ->

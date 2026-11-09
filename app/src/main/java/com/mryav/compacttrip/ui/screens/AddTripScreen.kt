@@ -31,6 +31,7 @@ import com.mryav.compacttrip.data.RetryStatus
 import com.mryav.compacttrip.data.loadWithRetry
 import com.mryav.compacttrip.data.retryingIn
 import com.mryav.compacttrip.data.model.Stop
+import com.mryav.compacttrip.data.model.TripPreferences
 import com.mryav.compacttrip.data.model.TripSummary
 import com.mryav.compacttrip.ui.components.ActionRow
 import com.mryav.compacttrip.ui.components.AppBar
@@ -79,24 +80,25 @@ private fun Preview.kind(): Any = if (this is Preview.Loaded) Preview.Loading::c
 fun AddTripScreen(
     origin: Stop?,
     destination: Stop?,
-    loadPreview: suspend (Stop, Stop) -> ApiResult<TripSummary>,
+    preferences: TripPreferences,
+    loadPreview: suspend (Stop, Stop, TripPreferences) -> ApiResult<TripSummary>,
     awaitOnline: suspend () -> Unit,
     now: State<Long>,
     onBack: () -> Unit,
     onPickOrigin: () -> Unit,
     onPickDestination: () -> Unit,
-    onModes: () -> Unit,
+    onPreferences: () -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val ready = origin != null && destination != null && origin.id != destination.id
     // Reset as soon as the stops change, so the previous trip's preview never shows for a frame.
-    var preview by remember(origin?.id, destination?.id) { mutableStateOf<Preview>(Preview.Loading) }
+    var preview by remember(origin?.id, destination?.id, preferences) { mutableStateOf<Preview>(Preview.Loading) }
 
-    LaunchedEffect(origin?.id, destination?.id) {
+    LaunchedEffect(origin?.id, destination?.id, preferences) {
         if (!ready) return@LaunchedEffect
         val r = loadWithRetry(
-            load = { loadPreview(origin, destination) },
+            load = { loadPreview(origin, destination, preferences) },
             awaitOnline = awaitOnline,
             onStatus = { status ->
                 preview = when (status) {
@@ -150,7 +152,7 @@ fun AddTripScreen(
                     style = Type.condensed24(Palette.BodyText),
                     modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
                 )
-                key(origin.id, destination.id) {
+                key(origin.id, destination.id, preferences) {
                     CollapsingSwap(target = preview, kind = { it.kind() }) { shown ->
                         PreviewBlock(shown, now)
                     }
@@ -166,7 +168,13 @@ fun AddTripScreen(
                 .padding(top = 8.du, bottom = 16.du),
             verticalArrangement = Arrangement.spacedBy(2.du),
         ) {
-            ActionRow(label = "Showing all modes", icon = R.drawable.ic_arrow_forward, onClick = onModes)
+            // This trip's preferences in a few words (no timing: Home always shows what's leaving now).
+            ActionRow(
+                label = preferences.summary(java.time.LocalDate.now()) ?: "Trip preferences",
+                icon = R.drawable.ic_arrow_forward,
+                onClick = onPreferences,
+                maxLines = 3,
+            )
             PlaceRow(placeholder = "Origin", value = origin?.name, icon = R.drawable.ic_trip_origin, onClick = onPickOrigin)
             PlaceRow(
                 placeholder = "Destination",

@@ -33,6 +33,7 @@ fun ActionRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     color: Color = Palette.ActionRow,
+    maxLines: Int = 1,
 ) {
     FocusSurface(
         onClick = onClick,
@@ -52,7 +53,7 @@ fun ActionRow(
                 BasicText(
                     text = label,
                     style = Type.row(Palette.OnDark),
-                    maxLines = 1,
+                    maxLines = maxLines,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (subtitle != null) {

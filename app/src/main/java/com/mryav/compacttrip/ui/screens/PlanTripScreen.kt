@@ -19,6 +19,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
@@ -30,6 +31,7 @@ import com.mryav.compacttrip.data.model.Journey
 import com.mryav.compacttrip.data.model.JourneyLeg
 import com.mryav.compacttrip.data.model.Notice
 import com.mryav.compacttrip.data.model.Stop
+import com.mryav.compacttrip.data.model.TripPreferences
 import com.mryav.compacttrip.data.model.TripSummary
 import com.mryav.compacttrip.data.retryingIn
 import com.mryav.compacttrip.ui.components.ActionRow
@@ -74,6 +76,7 @@ sealed interface PlanStatus {
 class PlanTripSession {
     var origin by mutableStateOf<Stop?>(null)
     var destination by mutableStateOf<Stop?>(null)
+    var preferences by mutableStateOf(TripPreferences.Default)
     var summary by mutableStateOf<TripSummary?>(null)
         internal set
     var status by mutableStateOf<PlanStatus?>(null)
@@ -81,7 +84,8 @@ class PlanTripSession {
     var loading by mutableStateOf(false)
         internal set
     internal var refreshRequests by mutableIntStateOf(0)
-    internal var loadedFor: Pair<String, String>? = null
+    /** What the current results answer: both stops and the preferences. */
+    internal var loadedFor: Any? = null
     internal var loadedAt = 0L
     /** The refresh count the current results answer: returning (same count) reuses fresh results; a press loads now. */
     internal var refreshSeen = -1
@@ -92,7 +96,9 @@ class PlanTripSession {
         refreshRequests++
     }
 
-    fun reset() {
+    /** Start a fresh plan: no stops, leaving now, with the user's standing [preferences]. */
+    fun reset(preferences: TripPreferences) {
+        this.preferences = preferences
         origin = null
         destination = null
         summary = null
@@ -109,26 +115,27 @@ class PlanTripSession {
 @Composable
 fun PlanTripScreen(
     session: PlanTripSession,
-    load: suspend (Stop, Stop) -> ApiResult<TripSummary>,
+    load: suspend (Stop, Stop, TripPreferences) -> ApiResult<TripSummary>,
     awaitOnline: suspend () -> Unit,
     now: State<Long>,
     onBack: () -> Unit,
     onPickOrigin: () -> Unit,
     onPickDestination: () -> Unit,
-    onModes: () -> Unit,
+    onPreferences: () -> Unit,
     onOpenJourney: (Journey) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val origin = session.origin
     val destination = session.destination
+    val preferences = session.preferences
 
-    LaunchedEffect(origin?.id, destination?.id, session.refreshRequests) {
+    LaunchedEffect(origin?.id, destination?.id, preferences, session.refreshRequests) {
         if (origin == null || destination == null || !session.ready) {
             session.summary = null
             session.status = null
             return@LaunchedEffect
         }
-        val stops = origin.id to destination.id
+        val stops = Triple(origin.id, destination.id, preferences)
         val requested = session.refreshRequests
         var wait = 0L
         if (stops != session.loadedFor) {
@@ -141,7 +148,7 @@ fun PlanTripScreen(
         session.refreshSeen = requested
         while (true) {
             if (wait > 0) delay(wait)
-            loadOnce(session, origin, destination, load, awaitOnline)
+            loadOnce(session, origin, destination, preferences, load, awaitOnline)
             wait = REFRESH_MS
         }
     }
@@ -198,7 +205,14 @@ fun PlanTripScreen(
                 .padding(top = 8.du, bottom = 16.du),
             verticalArrangement = Arrangement.spacedBy(2.du),
         ) {
-            ActionRow(label = "Showing all modes", icon = R.drawable.ic_arrow_forward, onClick = onModes)
+            // The preferences in a few plain words (Figma 27:3318), or "Trip preferences" when default.
+            val today = remember(now.value / 3_600_000) { java.time.LocalDate.now(java.time.ZoneId.of("Australia/Sydney")) }
+            ActionRow(
+                label = preferences.summary(today) ?: "Trip preferences",
+                icon = R.drawable.ic_arrow_forward,
+                onClick = onPreferences,
+                maxLines = 3,
+            )
             PlaceRow(placeholder = "Origin", value = origin?.name, icon = R.drawable.ic_trip_origin, onClick = onPickOrigin)
             PlaceRow(
                 placeholder = "Destination",
@@ -215,7 +229,8 @@ private suspend fun loadOnce(
     session: PlanTripSession,
     origin: Stop,
     destination: Stop,
-    load: suspend (Stop, Stop) -> ApiResult<TripSummary>,
+    preferences: TripPreferences,
+    load: suspend (Stop, Stop, TripPreferences) -> ApiResult<TripSummary>,
     awaitOnline: suspend () -> Unit,
 ) = coroutineScope {
     session.loading = true
@@ -230,7 +245,7 @@ private suspend fun loadOnce(
     }
     val r = try {
         loadWithRetry(
-            load = { load(origin, destination) },
+            load = { load(origin, destination, preferences) },
             awaitOnline = awaitOnline,
             onStatus = { s ->
                 session.status = when (s) {
@@ -247,7 +262,7 @@ private suspend fun loadOnce(
     if (r is ApiResult.Ok) {
         val summary = r.value
         session.summary = summary
-        session.loadedFor = origin.id to destination.id
+        session.loadedFor = Triple(origin.id, destination.id, preferences)
         session.loadedAt = System.currentTimeMillis()
         session.status = when {
             summary.departures.isNotEmpty() -> null

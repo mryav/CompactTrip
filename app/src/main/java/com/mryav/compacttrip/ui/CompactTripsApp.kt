@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.mryav.compacttrip.AppContainer
 import com.mryav.compacttrip.data.model.Stop
+import com.mryav.compacttrip.data.model.TripPreferences
 import com.mryav.compacttrip.data.model.Journey
 import com.mryav.compacttrip.data.model.Notice
 import com.mryav.compacttrip.data.model.SavedTrip
@@ -38,6 +39,7 @@ import com.mryav.compacttrip.ui.screens.SelectStopScreen
 import com.mryav.compacttrip.ui.screens.NoticesScreen
 import com.mryav.compacttrip.ui.screens.PlanTripScreen
 import com.mryav.compacttrip.ui.screens.PlanTripSession
+import com.mryav.compacttrip.ui.screens.TripPreferencesScreen
 import com.mryav.compacttrip.ui.screens.ServiceAlertScreen
 import com.mryav.compacttrip.ui.screens.SettingsScreen
 import com.mryav.compacttrip.ui.screens.TripDetailsScreen
@@ -47,12 +49,15 @@ import com.mryav.compacttrip.ui.screens.WelcomeScreen
 import kotlinx.coroutines.delay
 
 enum class Route {
-    Welcome, ApiKeySetup, ApiKeyEdit, Home, Settings, AddTrip, PlanTrip, SelectOrigin, SelectDestination,
+    Welcome, ApiKeySetup, ApiKeyEdit, Home, Settings, AddTrip, PlanTrip, TripPreferences, SelectOrigin, SelectDestination,
     ViewServices, TripDetails, Notices, ServiceAlert,
 }
 
 /** Which screen the stop search is filling in. */
 private enum class PickFor { AddTrip, PlanTrip }
+
+/** Whose preferences the Trip preferences screen is editing. Only a plan has timing. */
+private enum class PrefsFor { PlanTrip, AddTrip, SavedTrip }
 
 /** Stand-in id for a planned (unsaved) trip shown in Trip Details. */
 private const val PLANNED_TRIP_ID = "planned"
@@ -119,6 +124,8 @@ fun CompactTripsApp(
     // Add-trip picks survive trips to the stop search and back.
     var draftOrigin by remember { mutableStateOf<Stop?>(null) }
     var draftDestination by remember { mutableStateOf<Stop?>(null) }
+    var draftPreferences by remember { mutableStateOf(TripPreferences.Default) }
+    var prefsFor by remember { mutableStateOf(PrefsFor.PlanTrip) }
     // Plan new trip: stops and results survive the stop search and Trip Details.
     val plan = remember { PlanTripSession() }
     var pickFor by remember { mutableStateOf(PickFor.AddTrip) }
@@ -242,11 +249,12 @@ fun CompactTripsApp(
                                 HomeAction.AddTrip -> {
                                     draftOrigin = null
                                     draftDestination = null
+                                    draftPreferences = container.savedTrips.planPreferences()
                                     push(Route.AddTrip)
                                 }
                                 HomeAction.Refresh -> container.board.refresh()
                                 HomeAction.PlanTrip -> {
-                                    plan.reset()
+                                    plan.reset(container.savedTrips.planPreferences())
                                     push(Route.PlanTrip)
                                 }
                             }
@@ -269,7 +277,8 @@ fun CompactTripsApp(
                     AddTripScreen(
                         origin = draftOrigin,
                         destination = draftDestination,
-                        loadPreview = { o, d -> container.trips.upcoming(o, d) },
+                        preferences = draftPreferences,
+                        loadPreview = { o, d, p -> container.trips.upcoming(o, d, p) },
                         awaitOnline = { container.http.awaitOnline() },
                         now = now,
                         onBack = { pop() },
@@ -281,12 +290,15 @@ fun CompactTripsApp(
                             pickFor = PickFor.AddTrip
                             push(Route.SelectDestination)
                         },
-                        onModes = { showMessage("Choosing modes is coming in the next update. Showing all modes.") },
+                        onPreferences = {
+                            prefsFor = PrefsFor.AddTrip
+                            push(Route.TripPreferences)
+                        },
                         onDone = {
                             val o = draftOrigin
                             val d = draftDestination
                             if (o != null && d != null) {
-                                container.savedTrips.add(o, d)
+                                container.savedTrips.add(o, d, draftPreferences)
                                 container.board.refresh()
                             }
                             pop()
@@ -296,7 +308,7 @@ fun CompactTripsApp(
                 Route.PlanTrip -> key(route) {
                     PlanTripScreen(
                         session = plan,
-                        load = { o, d -> container.trips.upcoming(o, d) },
+                        load = { o, d, p -> container.trips.upcoming(o, d, p) },
                         awaitOnline = { container.http.awaitOnline() },
                         now = now,
                         onBack = { pop() },
@@ -308,8 +320,38 @@ fun CompactTripsApp(
                             pickFor = PickFor.PlanTrip
                             push(Route.SelectDestination)
                         },
-                        onModes = { showMessage("Choosing modes is coming in the next update. Showing all modes.") },
+                        onPreferences = {
+                            prefsFor = PrefsFor.PlanTrip
+                            push(Route.TripPreferences)
+                        },
                         onOpenJourney = ::openPlannedJourney,
+                    )
+                }
+                Route.TripPreferences -> key(route) {
+                    val target = prefsFor
+                    val savedTrip = selectedTrip
+                    TripPreferencesScreen(
+                        initial = when (target) {
+                            PrefsFor.PlanTrip -> plan.preferences
+                            PrefsFor.AddTrip -> draftPreferences
+                            PrefsFor.SavedTrip -> savedTrip?.preferences ?: TripPreferences.Default
+                        },
+                        showTiming = target == PrefsFor.PlanTrip,
+                        now = { java.time.LocalDateTime.now(java.time.ZoneId.of("Australia/Sydney")) },
+                        onBack = { pop() },
+                        onDone = { prefs ->
+                            when (target) {
+                                PrefsFor.PlanTrip -> plan.preferences = prefs
+                                PrefsFor.AddTrip -> draftPreferences = prefs
+                                PrefsFor.SavedTrip -> if (savedTrip != null) {
+                                    container.savedTrips.updatePreferences(savedTrip.id, prefs)
+                                    container.board.refresh()
+                                }
+                            }
+                            // The latest choice becomes the starting point for the next trip or plan.
+                            container.savedTrips.savePlanPreferences(prefs)
+                            pop()
+                        },
                     )
                 }
                 Route.SelectOrigin, Route.SelectDestination -> key(route) {
@@ -355,6 +397,10 @@ fun CompactTripsApp(
                             onRefresh = { container.board.refresh() },
                             onOpenJourney = { openJourney(trip, it) },
                             onOpenNotices = { openNotices(trip) },
+                            onPreferences = {
+                                prefsFor = PrefsFor.SavedTrip
+                                push(Route.TripPreferences)
+                            },
                             onRemove = {
                                 container.savedTrips.remove(trip.id)
                                 container.board.refresh()
