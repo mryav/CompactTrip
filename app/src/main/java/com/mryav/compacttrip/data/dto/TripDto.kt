@@ -22,12 +22,21 @@ data class LegDto(
     val realtimeStatus: List<String> = emptyList(),
     val isRealtimeControlled: Boolean = false,
     val infos: List<InfoDto> = emptyList(),
-    /** Only counted ("Ride 3 stops"); each entry is read as an id so the rest is skipped. */
+    /** Counted ("Ride 3 stops") and listed when expanded; only the name and platform are read. */
     val stopSequence: List<StopRefDto> = emptyList(),
 )
 
 @Serializable
-data class StopRefDto(val id: String = "")
+data class StopRefDto(
+    val id: String = "",
+    val name: String? = null,
+    /** "Edgecliff Station, Platform 2". */
+    val disassembledName: String? = null,
+    val properties: StopRefPropertiesDto = StopRefPropertiesDto(),
+)
+
+@Serializable
+data class StopRefPropertiesDto(val platformName: String? = null)
 
 @Serializable
 data class LegStopDto(

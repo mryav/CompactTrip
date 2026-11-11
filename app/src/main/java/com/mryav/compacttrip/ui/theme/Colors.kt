@@ -47,6 +47,8 @@ object Palette {
     val WalkChipBorder = Color(0xFF586065)
     val DurationChipBorder = Color(0xFFA1A1A1)
     val MutedText = Color(0xFF7F7F7F)
+    /** Empty-state hints ("Choose a starting point…", Figma 48:1595). */
+    val HintText = Color(0xFF5D5D5D)
     /** Icons on white surfaces (Material #1C1B1F at 70%, Figma swap_vert). */
     val IconOnLight = Color(0xB31C1B1F)
 

@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -71,6 +72,7 @@ fun WidgetSetupApp(
         }
     }
 
+    val savedTrips by container.savedTrips.trips.collectAsState()
     var origin by remember { mutableStateOf<Stop?>(null) }
     var destination by remember { mutableStateOf<Stop?>(null) }
     var preferences by remember { mutableStateOf(container.savedTrips.planPreferences()) }
@@ -103,9 +105,22 @@ fun WidgetSetupApp(
                     onPickDestination = { push(SetupRoute.SelectDestination) },
                     onPreferences = { push(SetupRoute.Preferences) },
                     onDone = { push(SetupRoute.CreateWidget) },
+                    onSwap = {
+                        val o = origin
+                        origin = destination
+                        destination = o
+                    },
                     title = "Select route",
                     previewLabel = "Available routes",
+                    hint = "Choose a starting point and destination for your widget.",
                     next = true,
+                    // Trips already on Home: one tap sets the route (and that trip's preferences).
+                    suggestions = savedTrips,
+                    onSuggestion = { trip ->
+                        origin = trip.origin
+                        destination = trip.destination
+                        preferences = trip.preferences
+                    },
                 )
             }
             SetupRoute.SelectOrigin, SetupRoute.SelectDestination -> key(route) {

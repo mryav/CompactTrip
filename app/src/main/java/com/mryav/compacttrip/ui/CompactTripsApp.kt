@@ -334,6 +334,11 @@ fun CompactTripsApp(
                             }
                             pop()
                         },
+                        onSwap = {
+                            val o = draftOrigin
+                            draftOrigin = draftDestination
+                            draftDestination = o
+                        },
                     )
                 }
                 Route.PlanTrip -> key(route) {

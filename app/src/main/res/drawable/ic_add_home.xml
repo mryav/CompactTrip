@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Converted from Figma asset (add_home). Tinted at the call site. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M35.9 39H37.55V33.5H43.05V31.85H37.55V26.35H35.9V31.85H30.4V33.5H35.9V39ZM36.625 42C34.0417 42 31.8333 41.075 30 39.225C28.1667 37.375 27.25 35.1833 27.25 32.65C27.25 30.0357 28.1665 27.807 29.9995 25.964C31.8325 24.1213 34.0493 23.2 36.65 23.2C39.2167 23.2 41.425 24.1213 43.275 25.964C45.125 27.807 46.05 30.0357 46.05 32.65C46.05 35.1833 45.125 37.375 43.275 39.225C41.425 41.075 39.2083 42 36.625 42ZM8 38V14L24 2L40 14V20.7C39.5333 20.5333 39.05 20.4167 38.55 20.35C38.05 20.2833 37.5333 20.2333 37 20.2V15.5L24 5.75L11 15.5V35H24.5C24.5867 35.528 24.7167 36.0433 24.89 36.546C25.0633 37.0487 25.2667 37.5333 25.5 38H8Z" />
+</vector>

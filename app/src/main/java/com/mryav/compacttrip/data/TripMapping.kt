@@ -3,6 +3,7 @@ package com.mryav.compacttrip.data
 import com.mryav.compacttrip.data.dto.InfoDto
 import com.mryav.compacttrip.data.dto.LegDto
 import com.mryav.compacttrip.data.dto.LocationDto
+import com.mryav.compacttrip.data.dto.StopRefDto
 import com.mryav.compacttrip.data.dto.TripResponse
 import com.mryav.compacttrip.data.model.DepartureCard
 import com.mryav.compacttrip.data.model.Journey
@@ -107,7 +108,15 @@ internal fun List<LegDto>.toJourney(): Journey? {
         val mode = Mode.fromClass(leg.transportation?.product?.productClass ?: 0) ?: return@mapNotNull null
         if (mode.isWalk) {
             val minutes = (leg.duration + 59) / 60
-            if (minutes > 0) JourneyLeg.Walk(minutes) else null
+            if (minutes > 0) {
+                JourneyLeg.Walk(
+                    minutes = minutes,
+                    departsAt = (leg.origin.departureTimeEstimated ?: leg.origin.departureTimePlanned)?.toEpochMillis(),
+                    arrivesAt = (leg.destination.arrivalTimeEstimated ?: leg.destination.arrivalTimePlanned)?.toEpochMillis(),
+                )
+            } else {
+                null
+            }
         } else {
             leg.toRide(mode)
         }
@@ -130,11 +139,25 @@ private fun LegDto.toRide(mode: Mode): JourneyLeg.Ride? {
         departsAt = estimated ?: planned,
         arrivesAt = arrival,
         status = statusOf(planned, estimated, realtimeStatus),
+        delayMinutes = delayMinutes(planned, estimated),
         stops = (stopSequence.size - 1).coerceAtLeast(1),
+        stopNames = stopSequence.drop(1).dropLast(1).mapNotNull { it.label() },
         minutes = (duration + 59) / 60,
         noticeIds = infos.map { it.id }.filter(String::isNotBlank).distinct(),
     )
 }
+
+/** "Edgecliff Station, Platform 2": the planner's own name, or name + platform when it has only the parts. */
+private fun StopRefDto.label(): String? {
+    disassembledName?.takeIf(String::isNotBlank)?.let { return it }
+    val name = name?.takeIf(String::isNotBlank) ?: return null
+    val platform = properties.platformName?.takeIf(String::isNotBlank)
+    return if (platform != null) "$name, $platform" else name
+}
+
+/** Whole minutes late, 0 when on time (or not live). */
+private fun delayMinutes(planned: Long, estimated: Long?): Int =
+    if (estimated == null || estimated - planned <= ON_TIME_TOLERANCE_MS) 0 else ((estimated - planned) / 60_000).toInt()
 
 /** "T2 Leppington & Inner West Line" + description → badge T2, "Leppington & Inner West Line (City to …)". */
 private fun LegDto.lineRef(): LineRef? {
@@ -185,6 +208,7 @@ internal fun List<LegDto>.toCard(): DepartureCard? {
         boardCars = boardCars(props.travelInCarsFrom, props.travelInCarsTo, props.numberOfCars),
         departsAt = estimated ?: planned,
         status = status,
+        delayMinutes = delayMinutes(planned, estimated),
     )
 }
 

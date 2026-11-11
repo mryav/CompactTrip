@@ -62,6 +62,8 @@ data class DepartureCard(
     /** Best-known departure (estimated if live, else planned), epoch millis. */
     val departsAt: Long,
     val status: RealtimeStatus,
+    /** Minutes behind the timetable (0 unless [status] is Delayed). */
+    val delayMinutes: Int = 0,
 )
 
 /** A line affected by a notice, e.g. T4 + "Eastern Suburbs & Illawarra Line (Waterfall or Cronulla to Bondi Junction)". */
@@ -83,6 +85,11 @@ data class Notice(
 )
 
 sealed interface JourneyLeg {
+    /** Best-known start of this leg, epoch millis (always known for a ride). */
+    val departsAt: Long?
+    /** Best-known end of this leg, epoch millis. */
+    val arrivesAt: Long?
+
     @Immutable
     data class Ride(
         val badge: LineBadge,
@@ -90,17 +97,25 @@ sealed interface JourneyLeg {
         /** "Bondi Junction Station, Platform 2". */
         val from: String,
         val to: String,
-        val departsAt: Long,
-        val arrivesAt: Long?,
+        override val departsAt: Long,
+        override val arrivesAt: Long?,
         val status: RealtimeStatus,
+        /** Minutes behind the timetable (0 unless [status] is Delayed). */
+        val delayMinutes: Int,
         /** Stops travelled (excluding the boarding stop). */
         val stops: Int,
+        /** The stops passed between [from] and [to], "Edgecliff Station, Platform 2"; empty if the planner gave none. */
+        val stopNames: List<String>,
         val minutes: Int,
         val noticeIds: List<String>,
     ) : JourneyLeg
 
     @Immutable
-    data class Walk(val minutes: Int) : JourneyLeg
+    data class Walk(
+        val minutes: Int,
+        override val departsAt: Long? = null,
+        override val arrivesAt: Long? = null,
+    ) : JourneyLeg
 }
 
 /** One way to make the trip: the Quick View card plus everything Trip Details needs. */

@@ -7,6 +7,8 @@ import com.mryav.compacttrip.data.dto.LegStopPropertiesDto
 import com.mryav.compacttrip.data.dto.NamedDto
 import com.mryav.compacttrip.data.dto.ProductDto
 import com.mryav.compacttrip.data.dto.StopFinderResponse
+import com.mryav.compacttrip.data.dto.StopRefDto
+import com.mryav.compacttrip.data.dto.StopRefPropertiesDto
 import com.mryav.compacttrip.data.dto.TransportationDto
 import com.mryav.compacttrip.data.dto.TripResponse
 import com.mryav.compacttrip.data.model.Mode
@@ -71,7 +73,37 @@ class TripMappingTest {
         assertEquals("Central Station, Platform 5", first.from)
         assertEquals("Strathfield Station, Platform 3", first.to)
         assertEquals(4, first.stops) // 5 stops in the sequence, boarding stop excluded
+        assertTrue(first.stopNames.isEmpty()) // the fixture's sequence has ids only
         assertTrue(journey.arrivesAt!! > journey.card.departsAt)
+        val walks = journey.legs.filterIsInstance<com.mryav.compacttrip.data.model.JourneyLeg.Walk>()
+        assertTrue(walks.all { it.departsAt != null && it.arrivesAt != null })
+    }
+
+    @Test
+    fun ride_listsIntermediateStops_andDelayMinutes() {
+        val leg = LegDto(
+            duration = 600,
+            origin = LegStopDto(
+                name = "Bondi Junction Station",
+                disassembledName = "Bondi Junction Station, Platform 2",
+                departureTimePlanned = "2026-11-08T01:30:00Z",
+                departureTimeEstimated = "2026-11-08T01:35:10Z",
+            ),
+            destination = LegStopDto(name = "Town Hall Station", disassembledName = "Town Hall Station, Platform 4"),
+            transportation = TransportationDto(disassembledName = "T4", product = ProductDto(1), destination = NamedDto("Cronulla")),
+            stopSequence = listOf(
+                StopRefDto(id = "1", disassembledName = "Bondi Junction Station, Platform 2"),
+                StopRefDto(id = "2", disassembledName = "Edgecliff Station, Platform 2"),
+                StopRefDto(id = "3", name = "Kings Cross Station", properties = StopRefPropertiesDto(platformName = "Platform 2")),
+                StopRefDto(id = "4", name = "Martin Place Station"),
+                StopRefDto(id = "5", disassembledName = "Town Hall Station, Platform 4"),
+            ),
+        )
+        val ride = listOf(leg).toJourney()!!.legs.single() as com.mryav.compacttrip.data.model.JourneyLeg.Ride
+        assertEquals(listOf("Edgecliff Station, Platform 2", "Kings Cross Station, Platform 2", "Martin Place Station"), ride.stopNames)
+        assertEquals(4, ride.stops)
+        assertEquals(RealtimeStatus.Delayed, ride.status)
+        assertEquals(5, ride.delayMinutes)
     }
 
     @Test
