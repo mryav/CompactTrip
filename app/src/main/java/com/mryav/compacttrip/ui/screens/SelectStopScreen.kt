@@ -168,7 +168,7 @@ fun SelectStopScreen(
                     item(key = "recent") {
                         BasicText(
                             "Recent",
-                            style = Type.condensed24(Palette.BodyText),
+                            style = Type.label(Palette.BodyText),
                             modifier = Modifier.padding(horizontal = 8.du, vertical = 4.du),
                         )
                     }

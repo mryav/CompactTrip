@@ -273,7 +273,7 @@ fun TripPreferencesScreen(
 private fun SectionLabel(text: String) {
     BasicText(
         text,
-        style = Type.condensed24(Palette.BodyText),
+        style = Type.label(Palette.BodyText),
         modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
     )
 }
@@ -314,7 +314,7 @@ private fun OptionRow(
             leading?.invoke()
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.du)) {
                 BasicText(title, style = Type.row(Palette.OnDark), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (subtitle != null) BasicText(subtitle, style = Type.condensedSmall(Palette.OnDarkSubtle))
+                if (subtitle != null) BasicText(subtitle, style = Type.secondary(Palette.OnDarkSubtle))
                 below?.invoke()
             }
         }
@@ -351,7 +351,7 @@ private fun TimeBox(label: String, value: String, modifier: Modifier, onClick: (
             modifier = Modifier.padding(horizontal = 16.du, vertical = 12.du),
             verticalArrangement = Arrangement.spacedBy(4.du),
         ) {
-            BasicText(label, style = Type.condensedSmall(Palette.OnDarkSubtle), maxLines = 1)
+            BasicText(label, style = Type.secondary(Palette.OnDarkSubtle), maxLines = 1)
             BasicText(value, style = Type.row(Palette.OnDark), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
@@ -385,7 +385,7 @@ private fun PickList(
     BackHandler(onBack = onDismiss)
     BasicText(
         title,
-        style = Type.condensed24(Palette.BodyText),
+        style = Type.label(Palette.BodyText),
         modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),
     )
     LazyColumn(state = list, verticalArrangement = Arrangement.spacedBy(2.du)) {

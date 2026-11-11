@@ -156,7 +156,7 @@ fun AddTripScreen(
             if (ready) {
                 BasicText(
                     previewLabel,
-                    style = Type.condensed24(Palette.BodyText),
+                    style = Type.label(Palette.BodyText),
                     modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
                 )
                 key(origin.id, destination.id, preferences) {

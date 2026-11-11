@@ -142,7 +142,7 @@ fun StatusMessage(
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.du)) {
             BasicText(text = title, style = Type.condensed(foreground))
-            BasicText(text = detail, style = Type.condensedSmall(foreground))
+            BasicText(text = detail, style = Type.secondary(foreground))
         }
         Image(
             painter = painterResource(icon),

@@ -28,7 +28,7 @@ fun StopRow(stop: Stop, onClick: () -> Unit, modifier: Modifier = Modifier) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.du)) {
                 BasicText(stop.name, style = Type.title(text))
                 if (stop.locality != null) {
-                    BasicText(stop.locality, style = Type.medium20(text), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    BasicText(stop.locality, style = Type.label(text), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(3.du)) {

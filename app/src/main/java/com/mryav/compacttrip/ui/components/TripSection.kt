@@ -147,14 +147,14 @@ private fun NoticeLine(summary: TripSummary, sectionFocused: Boolean, onClick: (
             Column(verticalArrangement = Arrangement.spacedBy(8.du)) {
                 BasicText(
                     headline,
-                    style = Type.condensed24(if (white) Palette.FocusedContent else Palette.AlertForeground),
+                    style = Type.headsign(if (white) Palette.FocusedContent else Palette.AlertForeground),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (summary.noticeCount > 1) {
                     BasicText(
                         "+${summary.noticeCount - 1} more",
-                        style = Type.condensed24(if (white) Palette.FocusedContent else Palette.MutedText),
+                        style = Type.secondary(if (white) Palette.FocusedContent else Palette.MutedText),
                     )
                 }
             }
@@ -168,7 +168,7 @@ private fun NoticeLine(summary: TripSummary, sectionFocused: Boolean, onClick: (
                     modifier = Modifier.size(24.du),
                 )
                 val n = summary.noticeCount
-                BasicText(if (n == 1) "1 notice" else "$n notices", style = Type.condensed24(color))
+                BasicText(if (n == 1) "1 notice" else "$n notices", style = Type.secondary(color))
             }
         }
     }
@@ -190,7 +190,7 @@ private fun StatusLine(load: TripLoad?, sectionFocused: Boolean) {
     }
     BasicText(
         text,
-        style = Type.condensed24(if (sectionFocused) Palette.FocusedContent else Palette.MutedText),
+        style = Type.secondary(if (sectionFocused) Palette.FocusedContent else Palette.MutedText),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.du),

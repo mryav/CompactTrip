@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget sizes: Figma design units x 0.856 (411dp-wide screens; 1 du = width/480, as in DesignUnit.kt). Generated: keep the three copies in step. -->
+<!-- Widget sizes: Figma design units x 0.856 (411dp-wide screens; 1 du = width/480, as in DesignUnit.kt). Spacing only; text sizes are fixed sp in values/. Generated: keep the three copies in step. -->
 <resources>
     <dimen name="w_pad2">1.71dp</dimen>
     <dimen name="w_pad4">3.42dp</dimen>
@@ -10,24 +10,10 @@
     <dimen name="w_pad20">17.12dp</dimen>
     <dimen name="w_icon">34.25dp</dimen>
     <dimen name="w_spinner">27.40dp</dimen>
-    <dimen name="w_countdown_width">68.50dp</dimen>
+    <dimen name="w_countdown_width">75.35dp</dimen>
     <dimen name="w_dash">13.70dp</dimen>
     <dimen name="w_card_height">149.84dp</dimen>
     <dimen name="w_radius_widget">4.28dp</dimen>
     <dimen name="w_radius_card_widget">5.14dp</dimen>
     <dimen name="w_radius_card">3.42dp</dimen>
-    <dimen name="w_text_from">15.41sp</dimen>
-    <dimen name="w_text_to">20.55sp</dimen>
-    <dimen name="w_text_headsign">17.12sp</dimen>
-    <dimen name="w_text_time">15.41sp</dimen>
-    <dimen name="w_text_badge">13.70sp</dimen>
-    <dimen name="w_text_countdown">20.55sp</dimen>
-    <dimen name="w_text_countdown_unit">15.41sp</dimen>
-    <dimen name="w_text_card_countdown">25.69sp</dimen>
-    <dimen name="w_text_card_unit">19.69sp</dimen>
-    <dimen name="w_text_card_clock">11.99sp</dimen>
-    <dimen name="w_text_card_title">20.55sp</dimen>
-    <dimen name="w_text_footer">14.56sp</dimen>
-    <dimen name="w_text_message">17.12sp</dimen>
-    <dimen name="w_text_cancelled">15.41sp</dimen>
 </resources>

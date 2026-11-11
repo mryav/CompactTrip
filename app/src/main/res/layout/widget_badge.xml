@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Line badge (Roboto Bold 16, padding 8/6, radius 4). Added to a row with RemoteViews.addView. -->
+<!-- Line badge (Roboto Bold 12 sp, padding 8/6, radius 4). Added to a row with RemoteViews.addView. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"

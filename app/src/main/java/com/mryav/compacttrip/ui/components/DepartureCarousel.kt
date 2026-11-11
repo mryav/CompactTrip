@@ -55,9 +55,6 @@ import kotlinx.coroutines.delay
 /** Figma 24:1563: the loading placeholder is shorter than a loaded card. */
 private const val PLACEHOLDER_HEIGHT = 155
 
-/** Add trip preview card (Figma 25:2749): one-line headsign, same height as the placeholder. */
-const val COMPACT_CARD_HEIGHT = 155
-
 /**
  * Horizontal Quick View cards. D-pad: LEFT/RIGHT between cards (the last card stops), DOWN leaves to
  * the next section, UP goes to [upTarget] (the notice chip or the trip section) when given.
@@ -74,7 +71,7 @@ const val COMPACT_CARD_HEIGHT = 155
  * the card that takes its place.
  *
  * [onCardClick] = null: cards aren't clickable, only focusable (shadow-only focus). [compact] uses
- * the shorter one-line card ([COMPACT_CARD_HEIGHT]).
+ * the shorter one-line card ([COMPACT_CARD_HEIGHT], same height as the placeholder).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -143,24 +140,25 @@ fun DepartureCarousel(
         val gap = 8.du
         val fullWidthPx = with(density) { (maxWidth - sidePadding * 2).roundToPx() }
         val fromHeightPx = with(density) { PLACEHOLDER_HEIGHT.du.roundToPx() }
-        // Cards in a carousel share one height. CARD_HEIGHT fits a one-line headsign; if any headsign
-        // here wraps to a second line, every card grows by that line so none is cropped.
-        val headsignStyle = Type.condensed24(Palette.BodyText)
+        // Cards in a carousel share one height. The card height fits a one-line headsign; if any
+        // headsign here wraps to a second line, every card grows by that line so none is cropped.
+        val headsignStyle = Type.headsign(Palette.BodyText)
         val headsignWidthPx = with(density) { HEADSIGN_MAX_WIDTH.du.roundToPx() }
         val measurer = rememberTextMeasurer(cacheSize = 8)
-        val wrapExtraPx = remember(cards, compact, headsignStyle, headsignWidthPx) {
-            if (compact) return@remember 0
+        val headsignLines = remember(cards, compact, headsignStyle, headsignWidthPx) {
+            if (compact) return@remember 1
             val oneLine = measurer.measure("A", headsignStyle).size.height
-            cards.maxOfOrNull { card ->
+            val wraps = cards.any { card ->
                 measurer.measure(
                     card.headsign,
                     headsignStyle,
                     maxLines = 2,
                     constraints = Constraints(maxWidth = headsignWidthPx),
-                ).size.height - oneLine
-            }?.coerceAtLeast(0) ?: 0
+                ).size.height > oneLine
+            }
+            if (wraps) 2 else 1
         }
-        val toHeightPx = with(density) { (if (compact) COMPACT_CARD_HEIGHT else CARD_HEIGHT).du.roundToPx() } + wrapExtraPx
+        val toHeightPx = with(density) { quickViewCardHeight(compact, headsignLines).roundToPx() }
         val totalReveal = revealDurationMs(cards.size).toFloat()
 
         // D-pad focus: the focused card lines up with the carousel's left margin (the previous card

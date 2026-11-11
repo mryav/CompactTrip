@@ -55,13 +55,13 @@ fun NoticesScreen(
         ) {
             BasicText(
                 "Affecting ${trip.origin.shortName} to ${trip.destination.shortName}",
-                style = Type.condensed24(Palette.BodyText),
+                style = Type.label(Palette.BodyText),
                 modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
             )
             if (notices.isEmpty()) {
                 BasicText(
                     "No current notices",
-                    style = Type.condensed(Palette.MutedText),
+                    style = Type.body(Palette.MutedText),
                     modifier = Modifier.padding(horizontal = 16.du, vertical = 20.du),
                 )
             }

@@ -49,7 +49,7 @@ fun WelcomeScreen(onSetUpKey: () -> Unit, modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(10.du),
             ) {
                 BasicText("Welcome to CompactTrips!", style = Type.title(Palette.TitleText))
-                BasicText("One place for all your trips inside NSW.", style = Type.condensed(Palette.BodyText))
+                BasicText("One place for all your trips inside NSW.", style = Type.body(Palette.BodyText))
             }
             Box(
                 modifier = Modifier
@@ -60,7 +60,7 @@ fun WelcomeScreen(onSetUpKey: () -> Unit, modifier: Modifier = Modifier) {
             ) {
                 BasicText(
                     "You’ll need an API key from Transport NSW to continue.",
-                    style = Type.condensed(Palette.BodyText),
+                    style = Type.body(Palette.BodyText),
                 )
             }
             Spacer(Modifier.weight(1f))

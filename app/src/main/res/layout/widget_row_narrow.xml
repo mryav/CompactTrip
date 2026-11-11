@@ -26,8 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/w_pad4"
             android:ellipsize="end"
-            android:fontFamily="sans-serif-condensed"
-            android:letterSpacing="-0.02"
+            android:fontFamily="@font/roboto_condensed"
             android:textColor="#FF2A2A2A"
             android:textSize="@dimen/w_text_headsign"
             android:textStyle="bold" />
@@ -45,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0.9"
-                android:fontFamily="sans-serif-condensed"
+                android:fontFamily="sans-serif"
                 android:includeFontPadding="false"
                 android:textColor="#FF475056"
                 android:textSize="@dimen/w_text_time" />
@@ -64,7 +63,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0.9"
-                android:fontFamily="sans-serif-condensed"
+                android:fontFamily="sans-serif"
                 android:includeFontPadding="false"
                 android:textColor="#FF475056"
                 android:textSize="@dimen/w_text_time" />
@@ -74,7 +73,7 @@
             android:id="@+id/place"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif"
             android:textColor="#FF596166"
             android:textSize="@dimen/w_text_time" />
 
@@ -105,7 +104,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="1dp"
-                android:fontFamily="sans-serif-condensed-medium"
+                android:fontFamily="@font/roboto_condensed_medium"
                 android:includeFontPadding="false"
                 android:textColor="#FF585858"
                 android:textSize="@dimen/w_text_countdown_unit" />

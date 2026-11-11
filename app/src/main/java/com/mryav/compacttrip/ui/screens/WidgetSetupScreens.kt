@@ -87,7 +87,7 @@ fun CreateWidgetScreen(
             AlertBanner(text = "Do not rely on widgets for real-time information", onClick = onOpenInfo)
             BasicText(
                 "Preview",
-                style = Type.condensed24(Palette.BodyText),
+                style = Type.label(Palette.BodyText),
                 modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
             )
             WidgetPreview(
@@ -185,7 +185,7 @@ fun WidgetInfoScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     "The data inside a widget updates every 15-30 minutes, or when you click refresh.\n\n" +
                         "When your phone is in battery saver, widgets can’t automatically refresh.\n\n" +
                         "Always click on a service to open the app for more accurate and up-to-date information.",
-                    style = Type.body24(Palette.BodyText),
+                    style = Type.body(Palette.BodyText),
                 )
             }
         }

@@ -16,11 +16,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.max
 import com.mryav.compacttrip.data.model.DepartureCard
 import com.mryav.compacttrip.data.model.RealtimeStatus
 import com.mryav.compacttrip.ui.theme.Palette
@@ -53,7 +60,7 @@ fun QuickViewCard(
         color = if (cancelled) Palette.CardCancelled else Palette.CardSurface,
         shape = shape,
         modifier = modifier
-            .height(CARD_HEIGHT.du)
+            .height(quickViewCardHeight(compact))
             .widthIn(min = 180.du, max = 268.du)
             .border(1.du, Palette.CardBorder, shape),
     ) { focused ->
@@ -87,7 +94,7 @@ fun QuickViewCard(
                 }
                 BasicText(
                     text = card.headsign,
-                    style = Type.condensed24(text),
+                    style = Type.headsign(text),
                     maxLines = if (compact) 1 else 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = HEADSIGN_MAX_WIDTH.du),
@@ -96,7 +103,7 @@ fun QuickViewCard(
                 if (platformLine.isNotEmpty()) {
                     BasicText(
                         text = platformLine,
-                        style = Type.condensed18(secondary, bold = card.platformChanged),
+                        style = Type.caption(secondary, bold = card.platformChanged),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 250.du),
@@ -125,8 +132,34 @@ private fun CountdownBox(card: DepartureCard, now: State<Long>, cancelled: Boole
 
 const val CARD_HEIGHT = 175
 
+/** The shorter one-line card (Add trip preview, Figma 25:2749). */
+const val COMPACT_CARD_HEIGHT = 155
+
 /** Headsigns wrap (to two lines at most) past this width. */
 const val HEADSIGN_MAX_WIDTH = 250
+
+/**
+ * Height of a Quick View card: the design's [CARD_HEIGHT] (or [COMPACT_CARD_HEIGHT]), or more if the
+ * text needs it. Text is sized in sp while the card's chrome follows the design-unit scale, so on a
+ * small screen or with a large font size the content can outgrow the design height; the card then
+ * grows to fit rather than cropping. [headsignLines] is 2 when a headsign in the carousel wraps.
+ */
+@Composable
+fun quickViewCardHeight(compact: Boolean, headsignLines: Int = 1): Dp {
+    val density = LocalDensity.current
+    val measurer = rememberTextMeasurer(cacheSize = 8)
+    val badge = Type.badge(Color.Unspecified)
+    val headsign = Type.headsign(Color.Unspecified)
+    val caption = Type.caption(Color.Unspecified)
+    val countdown = Type.countdown(Color.Unspecified)
+    val design = (if (compact) COMPACT_CARD_HEIGHT else CARD_HEIGHT).du
+    val chrome = 8.du * 2 + 4.du * 2 + 4.du + 4.du + 8.du + 8.du * 2 + 2.du
+    return remember(density, measurer, badge, headsign, caption, countdown, design, chrome, headsignLines) {
+        fun lineHeight(style: TextStyle) = with(density) { measurer.measure("Ag", style).size.height.toDp() }
+        val content = chrome + lineHeight(badge) + lineHeight(headsign) * headsignLines + lineHeight(caption) + lineHeight(countdown)
+        max(design, content)
+    }
+}
 
 /** "12 min" / "1 hr" / "Now", number coloured by realtime status. Reads [now] (15 s ticker). */
 @Composable

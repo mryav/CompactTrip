@@ -57,7 +57,7 @@ fun ActionRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (subtitle != null) {
-                    BasicText(text = subtitle, style = Type.condensedSmall(Palette.OnDarkSubtle))
+                    BasicText(text = subtitle, style = Type.secondary(Palette.OnDarkSubtle))
                 }
             }
             if (icon != null) {

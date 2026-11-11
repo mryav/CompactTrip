@@ -91,8 +91,8 @@ class WidgetModelsTest {
     @Test
     fun updatedAgo_wholeMinutes() {
         assertEquals("Updated just now", widgetUpdatedAgo(t0, t0 + 59_000))
-        assertEquals("Updated 1 minute ago", widgetUpdatedAgo(t0, t0 + minute))
-        assertEquals("Updated 10 minutes ago", widgetUpdatedAgo(t0, t0 + 10 * minute + 30_000))
+        assertEquals("Updated 1 min ago", widgetUpdatedAgo(t0, t0 + minute))
+        assertEquals("Updated 10 min ago", widgetUpdatedAgo(t0, t0 + 10 * minute + 30_000))
     }
 
     @Test

@@ -89,7 +89,7 @@ fun ServiceAlertScreen(
                 notice.lines.forEach { line ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.du)) {
                         LineBadgeChip(line.badge)
-                        line.name?.let { BasicText(it, style = Type.condensedSmall(Color.Black), modifier = Modifier.weight(1f)) }
+                        line.name?.let { BasicText(it, style = Type.secondary(Color.Black), modifier = Modifier.weight(1f)) }
                     }
                 }
             }
@@ -126,8 +126,8 @@ fun ServiceAlertScreen(
                     .padding(16.du),
                 verticalArrangement = Arrangement.spacedBy(16.du),
             ) {
-                notice.updatedAt?.let { BasicText("Updated ${updatedLabel(it)}", style = Type.body24(Palette.BodyText, bold = true)) }
-                if (body != null) BasicText(body, style = Type.body24(Palette.BodyText))
+                notice.updatedAt?.let { BasicText("Updated ${updatedLabel(it)}", style = Type.body(Palette.BodyText, bold = true)) }
+                if (body != null) BasicText(body, style = Type.body(Palette.BodyText))
             }
         }
     }

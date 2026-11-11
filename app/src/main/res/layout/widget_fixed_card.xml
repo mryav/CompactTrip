@@ -7,9 +7,9 @@
     android:gravity="center_vertical"
     android:orientation="vertical"
     android:paddingStart="@dimen/w_pad16"
-    android:paddingTop="@dimen/w_pad20"
+    android:paddingTop="@dimen/w_pad12"
     android:paddingEnd="@dimen/w_pad16"
-    android:paddingBottom="@dimen/w_pad20">
+    android:paddingBottom="@dimen/w_pad12">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -39,7 +39,6 @@
                 android:id="@+id/title_to"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/w_pad4"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
@@ -74,11 +73,13 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Cards grow to fit their text (never shorter than the design's 175); both match the taller. -->
+    <!-- Cards grow to fit their text (never shorter than the design's 175); both match the taller.
+         Vertical chrome is tighter than the Figma frame: text is sized in sp, so the content is taller
+         than the design on small screens, and the widget has to fit its launcher cells. -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/w_pad12"
+        android:layout_marginTop="@dimen/w_pad8"
         android:minHeight="@dimen/w_card_height">
 
         <LinearLayout
@@ -97,9 +98,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@drawable/widget_ripple"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif"
             android:gravity="center_vertical|start"
-            android:letterSpacing="-0.02"
             android:padding="@dimen/w_pad8"
             android:textColor="#FF343434"
             android:textSize="@dimen/w_text_message"
@@ -110,12 +110,11 @@
         android:id="@+id/footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/w_pad12"
+        android:layout_marginTop="@dimen/w_pad8"
         android:alpha="0.8"
         android:ellipsize="end"
-        android:fontFamily="sans-serif-condensed"
+        android:fontFamily="sans-serif"
         android:gravity="end"
-        android:letterSpacing="-0.02"
         android:maxLines="1"
         android:textColor="#FF343434"
         android:textSize="@dimen/w_text_footer" />

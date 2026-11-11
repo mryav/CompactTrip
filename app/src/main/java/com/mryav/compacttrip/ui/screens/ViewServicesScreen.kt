@@ -159,7 +159,7 @@ fun ViewServicesScreen(
                     item(key = "message") {
                         BasicText(
                             message,
-                            style = Type.condensed(Palette.MutedText),
+                            style = Type.body(Palette.MutedText),
                             modifier = Modifier.padding(horizontal = 16.du, vertical = 20.du),
                         )
                     }
@@ -213,7 +213,7 @@ private fun TripMenu(
     Column(verticalArrangement = Arrangement.spacedBy(2.du)) {
         BasicText(
             trip.title,
-            style = Type.condensed24(Palette.BodyText),
+            style = Type.label(Palette.BodyText),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(start = 16.du, end = 16.du, top = 16.du, bottom = 8.du),

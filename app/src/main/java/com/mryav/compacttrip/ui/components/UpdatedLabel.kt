@@ -12,7 +12,7 @@ import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
 
-/** "Updated 30s ago" (right-aligned, Condensed 24). Shows "Updating…" before the first data arrives. */
+/** "Updated 30s ago" (right-aligned label). Shows "Updating…" before the first data arrives. */
 @Composable
 fun UpdatedLabel(updatedAt: Long?, refreshing: Boolean, now: State<Long>, modifier: Modifier = Modifier) {
     Box(
@@ -25,6 +25,6 @@ fun UpdatedLabel(updatedAt: Long?, refreshing: Boolean, now: State<Long>, modifi
             updatedAt == null -> if (refreshing) "Updating…" else ""
             else -> "Updated ${updatedAgo(updatedAt, now.value)}"
         }
-        BasicText(text, style = Type.condensed24(Palette.BodyText))
+        BasicText(text, style = Type.label(Palette.BodyText))
     }
 }

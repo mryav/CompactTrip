@@ -130,12 +130,12 @@ fun WidgetSnapshot?.content(now: Long): WidgetContent {
     return WidgetContent.Message(if (s.error == LoadError.Offline) WidgetMessage.Offline else WidgetMessage.TapToLoad)
 }
 
-/** Footer text. Widgets redraw once a minute, so whole minutes: "Updated 10 minutes ago". */
+/** Footer text. Widgets redraw once a minute, so whole minutes: "Updated 10 min ago" (short enough for a narrow widget). */
 fun widgetUpdatedAgo(fetchedAt: Long, now: Long): String {
     val minutes = ((now - fetchedAt) / 60_000).coerceAtLeast(0)
     return when (minutes) {
         0L -> "Updated just now"
-        1L -> "Updated 1 minute ago"
-        else -> "Updated $minutes minutes ago"
+        1L -> "Updated 1 min ago"
+        else -> "Updated $minutes min ago"
     }
 }

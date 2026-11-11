@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Quick View card in the Fixed card widget (Figma 30:4704). Added with RemoteViews.addView.
-     match_parent height in a wrap_content row: the row makes both cards as tall as the taller one,
-     and the headsign takes any spare height so the countdown boxes line up at the bottom. -->
+     match_parent height in a wrap_content row: the row makes both cards as tall as the taller one.
+     The headsign wraps freely (the card grows with it); the spacer below the platform line takes
+     any spare height so the countdown boxes line up at the bottom. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/card"
     android:layout_width="0dp"
@@ -20,13 +21,11 @@
     <TextView
         android:id="@+id/headsign"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/w_pad4"
-        android:layout_weight="1"
         android:ellipsize="end"
-        android:fontFamily="sans-serif-condensed"
-        android:letterSpacing="-0.02"
-        android:maxLines="4"
+        android:fontFamily="@font/roboto_condensed"
+        android:maxLines="2"
         android:textColor="#FF2A2A2A"
         android:textSize="@dimen/w_text_headsign" />
 
@@ -36,15 +35,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/w_pad4"
         android:ellipsize="end"
-        android:fontFamily="sans-serif-condensed"
+        android:fontFamily="sans-serif"
         android:maxLines="1"
         android:textColor="#FF475056"
         android:textSize="@dimen/w_text_time" />
 
+    <!-- Spare height (RemoteViews allows no plain View or Space, so a FrameLayout). -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/w_pad8"
+        android:layout_marginTop="@dimen/w_pad4"
         android:background="@drawable/widget_countdown_bg"
         android:gravity="bottom"
         android:orientation="horizontal"
@@ -69,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="1dp"
             android:layout_weight="1"
-            android:fontFamily="sans-serif-condensed-medium"
+            android:fontFamily="@font/roboto_condensed_medium"
             android:includeFontPadding="false"
             android:textColor="#FF585858"
             android:textSize="@dimen/w_text_card_unit" />
@@ -79,7 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:alpha="0.9"
-            android:fontFamily="sans-serif-condensed-medium"
+            android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
             android:textColor="#FF475056"
             android:textSize="@dimen/w_text_card_clock" />

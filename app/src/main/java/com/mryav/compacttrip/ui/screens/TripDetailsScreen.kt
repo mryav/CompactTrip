@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.em
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.data.model.Journey
 import com.mryav.compacttrip.data.model.JourneyLeg
@@ -121,7 +120,7 @@ fun TripDetailsScreen(
             JourneySummary(journey = journey, now = now)
             BasicText(
                 "Directions",
-                style = Type.condensed24(Palette.BodyText),
+                style = Type.label(Palette.BodyText),
                 modifier = Modifier.padding(start = 8.du, end = 8.du, top = 8.du, bottom = 4.du),
             )
             Column {
@@ -157,7 +156,7 @@ private fun JourneySummary(journey: Journey, now: State<Long>) {
             contentAlignment = Alignment.Center,
         ) {
             if (card.status == RealtimeStatus.Cancelled) {
-                BasicText("Cancelled", style = Type.condensedSmall(Palette.Delayed))
+                BasicText("Cancelled", style = Type.secondary(Palette.Delayed))
             } else {
                 CountdownText(departsAt = card.departsAt, status = card.status, now = now)
             }
@@ -172,19 +171,19 @@ private fun JourneySummary(journey: Journey, now: State<Long>) {
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BasicText(clockTime(card.departsAt), style = Type.condensedSmall(Palette.CardSecondaryText))
+                BasicText(clockTime(card.departsAt), style = Type.secondary(Palette.CardSecondaryText))
                 val arrives = journey.arrivesAt
                 if (arrives != null) {
                     Connector()
                     BasicText(
                         durationLabel(arrives - card.departsAt),
-                        style = Type.condensedSmall(Palette.CardSecondaryText),
+                        style = Type.secondary(Palette.CardSecondaryText),
                         modifier = Modifier
                             .border(1.du, Palette.DurationChipBorder, RoundedCornerShape(5.du))
                             .padding(horizontal = 4.du, vertical = 4.du),
                     )
                     Connector()
-                    BasicText(clockTime(arrives), style = Type.condensedSmall(Palette.CardSecondaryText))
+                    BasicText(clockTime(arrives), style = Type.secondary(Palette.CardSecondaryText))
                 }
             }
         }
@@ -272,22 +271,22 @@ private fun RideLeg(leg: JourneyLeg.Ride, notices: List<Notice>, onOpenNotice: (
                     LineBadgeChip(leg.badge)
                     BasicText(
                         leg.headsign,
-                        style = Type.condensedSmall(if (focused) Palette.FocusedContent else Color.Black),
+                        style = Type.secondary(if (focused) Palette.FocusedContent else Color.Black),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.du)) {
-                    BasicText(clockTime(leg.departsAt), style = Type.condensedSmall(text))
+                    BasicText(clockTime(leg.departsAt), style = Type.secondary(text))
                     BasicText(
                         statusLabel(leg.status),
-                        style = Type.condensedSmall(if (focused) Palette.FocusedContent else statusColor(leg.status)),
+                        style = Type.secondary(if (focused) Palette.FocusedContent else statusColor(leg.status)),
                     )
                 }
             }
             BasicText(
                 "Ride ${leg.stops} ${if (leg.stops == 1) "stop" else "stops"}, ${leg.minutes} min",
-                style = Type.medium20(if (focused) Palette.FocusedContent else Palette.TitleText),
+                style = Type.label(if (focused) Palette.FocusedContent else Palette.TitleText),
                 modifier = Modifier.fillMaxWidth().background(block).padding(16.du),
             )
             Column(
@@ -295,7 +294,7 @@ private fun RideLeg(leg: JourneyLeg.Ride, notices: List<Notice>, onOpenNotice: (
                 verticalArrangement = Arrangement.spacedBy(10.du),
             ) {
                 BasicText(leg.to, style = Type.condensed(text))
-                leg.arrivesAt?.let { BasicText(clockTime(it), style = Type.condensedSmall(text)) }
+                leg.arrivesAt?.let { BasicText(clockTime(it), style = Type.secondary(text)) }
             }
         }
     }
@@ -322,7 +321,7 @@ private fun LegNotice(notice: Notice, onClick: () -> Unit, modifier: Modifier = 
         ) {
             BasicText(
                 notice.title,
-                style = Type.condensedSmall(color).copy(letterSpacing = 0.em),
+                style = Type.secondary(color),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),

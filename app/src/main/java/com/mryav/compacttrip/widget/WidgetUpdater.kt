@@ -28,7 +28,7 @@ import java.util.Collections
 /**
  * Keeps widgets current while costing as little battery as possible:
  * - **Minute tick**: a non-wakeup alarm redraws every widget from stored data (countdowns, departed
- *   services dropping off, "Updated N minutes ago"). No network. It never wakes the phone: while
+ *   services dropping off, "Updated N min ago"). No network. It never wakes the phone: while
  *   the screen is off it waits, and fires when the screen comes back on.
  * - **Auto refresh**: on a tick, widgets with data older than [AUTO_REFRESH_MS] are reloaded, but
  *   only while the screen is on, battery saver is off and there's a connection. So nothing is

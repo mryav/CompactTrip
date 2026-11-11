@@ -62,7 +62,7 @@ fun NoticesChip(notices: List<Notice>, onClick: () -> Unit, modifier: Modifier =
                 Box(Modifier.size(4.du).clip(CircleShape).background(color))
                 BasicText(
                     if (notices.size == 1) "1 notice" else "${notices.size} notices",
-                    style = Type.condensed24(color),
+                    style = Type.secondary(color),
                     maxLines = 1,
                 )
             }

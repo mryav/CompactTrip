@@ -217,7 +217,7 @@ fun rememberPullRefreshState(refreshing: Boolean, onRefresh: () -> Unit): PullRe
 }
 
 /**
- * The collapsible "Updated …" tag (right-aligned, Condensed 24). Its height follows [state]; the
+ * The collapsible "Updated …" tag (right-aligned label). Its height follows [state]; the
  * content is anchored to the top and cropped, so it's revealed top-to-bottom.
  */
 @Composable
@@ -257,7 +257,7 @@ fun RefreshTag(state: PullRefreshState, updatedAt: Long?, now: State<Long>, modi
                     else -> "Updated ${updatedAgo(updatedAt, clock)}"
                 }
             }
-            BasicText(text, style = Type.condensed24(Palette.BodyText), maxLines = 1)
+            BasicText(text, style = Type.label(Palette.BodyText), maxLines = 1)
         }
     }
 }

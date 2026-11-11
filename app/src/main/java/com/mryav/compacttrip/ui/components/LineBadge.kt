@@ -14,7 +14,7 @@ import com.mryav.compacttrip.ui.theme.Palette
 import com.mryav.compacttrip.ui.theme.Type
 import com.mryav.compacttrip.ui.theme.du
 
-/** Line chip, e.g. "T1" on orange (Roboto Bold 16, padding 8/6, radius 4). */
+/** Line chip, e.g. "T1" on orange (Roboto Bold 13 sp, padding 8/4, radius 4; 16 sp and 10/6 when [large]). */
 @Composable
 fun LineBadgeChip(badge: LineBadge, modifier: Modifier = Modifier, large: Boolean = false) {
     Chip(

@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.em
 import com.mryav.compacttrip.R
 import com.mryav.compacttrip.data.model.Journey
 import com.mryav.compacttrip.data.model.Notice
@@ -63,7 +62,7 @@ fun ServiceRow(
                 }
                 BasicText(
                     card.headsign,
-                    style = Type.condensed(primary).copy(letterSpacing = (-0.02).em),
+                    style = Type.condensed(primary),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -72,17 +71,17 @@ fun ServiceRow(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.du),
                 ) {
-                    BasicText(clockTime(card.departsAt), style = Type.condensedSmall(secondary))
+                    BasicText(clockTime(card.departsAt), style = Type.secondary(secondary))
                     if (journey.arrivesAt != null) {
                         Box(Modifier.width(16.du).height(1.du).background(secondary))
-                        BasicText(clockTime(journey.arrivesAt), style = Type.condensedSmall(secondary))
+                        BasicText(clockTime(journey.arrivesAt), style = Type.secondary(secondary))
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.du)) {
                     card.platform?.let {
                         BasicText(
                             it,
-                            style = Type.condensedSmall(
+                            style = Type.secondary(
                                 when {
                                     focused -> Palette.FocusedContent
                                     card.platformChanged -> Palette.PlatformChanged
@@ -96,7 +95,7 @@ fun ServiceRow(
                     }
                     BasicText(
                         statusLabel(card.status),
-                        style = Type.condensedSmall(if (focused) Palette.FocusedContent else statusColor(card.status)),
+                        style = Type.secondary(if (focused) Palette.FocusedContent else statusColor(card.status)),
                         maxLines = 1,
                     )
                 }
@@ -116,7 +115,7 @@ fun ServiceRow(
                             modifier = Modifier.size(24.du),
                         )
                         val noun = if (urgent) "alert" else "notice"
-                        BasicText(if (n == 1) "1 $noun" else "$n ${noun}s", style = Type.condensedSmall(color))
+                        BasicText(if (n == 1) "1 $noun" else "$n ${noun}s", style = Type.secondary(color))
                     }
                 }
             }
